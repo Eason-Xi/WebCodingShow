@@ -1,0 +1,68 @@
+import { NextRequest, NextResponse } from "next/server";
+import { StorageService } from "@/lib/storage";
+import { LLMGateway } from "@/lib/ai/client";
+import { PROMPTS } from "@/lib/ai/prompts";
+import { InterviewChapter, InterviewQuestion } from "@/types";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { projectId } = await req.json();
+    const project = StorageService.getProjectById(projectId);
+    if (!project) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+    }
+
+    const prompt = PROMPTS.GENERATE_PLAN({
+      guestName: project.guestName,
+      topic: project.topic,
+      interviewStyle: project.interviewStyle,
+      durationMinutes: project.durationMinutes,
+      focusDirection: project.focusDirection,
+      profileJson: JSON.stringify(project.profile || {}, null, 2),
+    });
+
+    const aiRes = await LLMGateway.chat([
+      { role: "system", content: "你是一个资深访谈策划总监，按故事脉络组织采访章节与多级问题，只输出严格 JSON 格式。" },
+      { role: "user", content: prompt },
+    ], true);
+
+    let planData;
+    try {
+      planData = JSON.parse(aiRes);
+    } catch {
+      const match = aiRes.match(/\{[\s\S]*\}/);
+      if (match) {
+        planData = JSON.parse(match[0]);
+      } else {
+        throw new Error("无法解析 AI 返回的 JSON 大纲");
+      }
+    }
+
+    const formattedChapters: InterviewChapter[] = (planData.chapters || []).map((ch: any, idx: number) => ({
+      id: `ch-${Date.now()}-${idx + 1}`,
+      order: ch.order || idx + 1,
+      title: ch.title || `Chapter ${idx + 1}`,
+      goal: ch.goal || "",
+      estimatedMinutes: ch.estimatedMinutes || 5,
+      questions: (ch.questions || []).map((q: any, qIdx: number): InterviewQuestion => ({
+        id: `q-${idx + 1}-${qIdx + 1}`,
+        text: q.text || "",
+        type: q.type || "story",
+        status: "pending",
+        followUps: q.followUps || [],
+      })),
+    }));
+
+    project.chapters = formattedChapters;
+    if (project.status === "planning") {
+      project.status = "interviewing";
+    }
+
+    StorageService.saveProject(project);
+
+    return NextResponse.json({ success: true, data: formattedChapters });
+  } catch (err: any) {
+    console.error("策划大纲生成错误:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}
