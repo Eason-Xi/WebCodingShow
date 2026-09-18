@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个专业的访谈人物深度研究总监，只输出标准 JSON 格式。" },
       { role: "user", content: prompt },
-    ], true);
+    ], { jsonMode: true, task: "profile" });
 
     let profileData;
     try {
@@ -39,17 +39,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    project.profile = {
+    const profile = {
       ...profileData,
       lastAnalyzedAt: new Date().toISOString(),
     };
-    if (project.status === "researching") {
-      project.status = "planning";
+
+    // 写回时重新读取，只更新档案与状态，避免覆盖等待 LLM 期间的其他改动
+    const saved = StorageService.updateProject(projectId, (latest) => ({
+      ...latest,
+      profile,
+      status: latest.status === "researching" ? "planning" : latest.status,
+    }));
+
+    if (!saved) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
     }
 
-    StorageService.saveProject(project);
-
-    return NextResponse.json({ success: true, data: project.profile });
+    return NextResponse.json({ success: true, data: saved.profile });
   } catch (err: any) {
     console.error("人物分析错误:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

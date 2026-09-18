@@ -75,10 +75,11 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
       "正在解析并保存逐字稿...",
       `已解析 ${newItems.length} 条发言节点`,
       () =>
+        // 只提交变更的字段，避免覆盖并发进行中的 AI 结果
         requestJson<InterviewProject>(`/api/projects/${project.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updated),
+          body: JSON.stringify({ transcript: newItems, status: updated.status }),
         }),
       "逐字稿保存失败"
     );
@@ -116,10 +117,11 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
     onUpdate(updated);
 
     try {
+      // 只提交 transcript，避免覆盖并发进行中的 AI 结果
       await requestJson(`/api/projects/${project.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ transcript: updated.transcript }),
       });
     } catch (e) {
       toast.error(

@@ -128,10 +128,11 @@ export default function InterviewTab({ project, onUpdate }: Props) {
     onUpdate(updated);
 
     try {
+      // 只提交变更的字段：整份项目快照会把并发进行中的 AI 结果（如复盘报告）覆盖掉
       await requestJson(`/api/projects/${project.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ chapters: updatedChapters }),
       });
     } catch (e) {
       toast.error(

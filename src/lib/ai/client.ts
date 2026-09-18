@@ -1,5 +1,8 @@
 import { PROMPTS } from "./prompts";
 
+/** 调用方声明的任务类型：Mock 引擎据此分发，不再靠猜提示词文本 */
+export type LLMTask = "profile" | "plan" | "review" | "content" | "chat";
+
 interface ChatCompletionMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -21,14 +24,18 @@ export class LLMGateway {
   /**
    * 统一大模型生成方法
    */
-  static async chat(messages: ChatCompletionMessage[], jsonMode: boolean = false): Promise<string> {
+  static async chat(
+    messages: ChatCompletionMessage[],
+    options: { jsonMode?: boolean; task?: LLMTask } = {}
+  ): Promise<string> {
+    const { jsonMode = false, task } = options;
     const apiKey = this.getApiKey();
     const baseUrl = this.getBaseUrl();
     const model = this.getModel();
 
     if (!apiKey) {
       console.warn("未检测到 OPENAI_API_KEY，使用高质量智能 Mock 引擎生成响应");
-      return this.mockResponse(messages, jsonMode);
+      return this.mockResponse(messages, task);
     }
 
     try {
@@ -50,29 +57,41 @@ export class LLMGateway {
         const errText = await res.text();
         console.error("LLM API 调用失败:", errText);
         // 如果云端 API 失败，降级回 Mock，确保 UI 不崩溃
-        return this.mockResponse(messages, jsonMode);
+        return this.mockResponse(messages, task);
       }
 
       const data = await res.json();
       return data.choices[0]?.message?.content || "";
     } catch (err) {
       console.error("LLM 调用异常:", err);
-      return this.mockResponse(messages, jsonMode);
+      return this.mockResponse(messages, task);
     }
   }
 
   /**
    * 智能本地兜底生成器（确保零配置下体验丝滑）
    */
-  private static mockResponse(messages: ChatCompletionMessage[], jsonMode: boolean): string {
+  private static mockResponse(messages: ChatCompletionMessage[], task?: LLMTask): string {
     const lastMsg = messages[messages.length - 1]?.content || "";
+
+    // 优先采用调用方显式声明的任务；只有未声明时才回退到按提示词特征猜测。
+    // 猜测很脆弱：GENERATE_PLAN 会内嵌含 "identity" 的人物档案，用户的提问里
+    // 也可能恰好出现 "chapters"、"identity" 之类的词，从而被分发到错误分支。
+    const isContent = task ? task === "content" : lastMsg.includes("shortVideos");
+    const isPlan = task ? task === "plan" : lastMsg.includes("chapters");
+    const isReview = task ? task === "review" : lastMsg.includes("overallRating");
+    const isProfile = task
+      ? task === "profile"
+      : (lastMsg.includes("人物最值得被提问的灵魂张力") || lastMsg.includes("identity")) &&
+        !lastMsg.includes("chapters") &&
+        !lastMsg.includes("overallRating");
 
     // ⚠️ 分发顺序必须从最具体到最宽泛：
     // ANALYZE_TRANSCRIPT_AND_PACKAGING 的 JSON schema 里含 "chaptersTimeline"，
     // 会误命中下方策划大纲分支的 "chapters"，因此 "shortVideos" 必须排在最前面。
 
     // 0. 逐字稿拆条与全网包装（最具体，优先匹配）
-    if (lastMsg.includes("shortVideos")) {
+    if (isContent) {
       return JSON.stringify({
         themes: [
           { timeRange: "00:00-05:30", title: "传统剧组的出走", summary: "从副导演到一人工作室的身份转折" },
@@ -154,14 +173,7 @@ export class LLMGateway {
       }, null, 2);
     }
 
-    // 1. 判断是否为人物画像提取
-    // ⚠️ GENERATE_PLAN 的 prompt 会内嵌人物档案 JSON，其中含 "identity" 字段，
-    // 因此必须排除同时携带 chapters / overallRating 的请求，否则策划大纲会被误判成画像提取。
-    if (
-      (lastMsg.includes("人物最值得被提问的灵魂张力") || lastMsg.includes("identity")) &&
-      !lastMsg.includes("chapters") &&
-      !lastMsg.includes("overallRating")
-    ) {
+    if (isProfile) {
       return JSON.stringify({
         identity: {
           name: "张三",
@@ -210,7 +222,7 @@ export class LLMGateway {
     }
 
     // 2. 判断是否为策划大纲生成
-    if (lastMsg.includes("设计一套像电影叙事般流畅有力的采访大纲") || lastMsg.includes("chapters")) {
+    if (isPlan) {
       return JSON.stringify({
         chapters: [
           {
@@ -288,7 +300,7 @@ export class LLMGateway {
     }
 
     // 3. 判断是否为模拟复盘报告生成
-    if (lastMsg.includes("访谈第二导演") || lastMsg.includes("overallRating")) {
+    if (isReview) {
       return JSON.stringify({
         overallRating: 84,
         summary: "主持人整体节奏推进流畅，问题逻辑层层递进。但在关键情绪冲突处略显仓促，建议给予嘉宾更多展开故事细节的追问空间。",

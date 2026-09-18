@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个爆款内容总监与短视频剪辑总策划，只输出 JSON。" },
       { role: "user", content: prompt },
-    ], true);
+    ], { jsonMode: true, task: "content" });
 
     let parsed;
     try {
@@ -52,46 +52,52 @@ export async function POST(req: NextRequest) {
       throw new Error("未能从逐字稿中解析出拆条 / 金句 / 包装资产，请检查模型返回结构");
     }
 
-    if (parsed.shortVideos) {
-      project.shortVideos = parsed.shortVideos.map((sv: any, idx: number): ShortVideoClip => ({
-        id: `sv-${Date.now()}-${idx + 1}`,
-        title: sv.title || `短视频选题 ${idx + 1}`,
-        duration: sv.duration || "00:45",
-        inPoint: sv.inPoint || "00:01:00",
-        outPoint: sv.outPoint || "00:01:45",
-        coreOpinion: sv.coreOpinion || "",
-        coverTitle: sv.coverTitle || "",
-        scriptSnippet: sv.scriptSnippet || "",
-      }));
-    }
+    const shortVideos: ShortVideoClip[] | undefined = parsed.shortVideos
+      ? parsed.shortVideos.map((sv: any, idx: number): ShortVideoClip => ({
+          id: `sv-${Date.now()}-${idx + 1}`,
+          title: sv.title || `短视频选题 ${idx + 1}`,
+          duration: sv.duration || "00:45",
+          inPoint: sv.inPoint || "00:01:00",
+          outPoint: sv.outPoint || "00:01:45",
+          coreOpinion: sv.coreOpinion || "",
+          coverTitle: sv.coverTitle || "",
+          scriptSnippet: sv.scriptSnippet || "",
+        }))
+      : undefined;
 
-    if (parsed.quotes) {
-      project.quotes = parsed.quotes.map((q: any, idx: number): GoldenQuote => ({
-        id: `q-${Date.now()}-${idx + 1}`,
-        text: q.text || "",
-        timecode: q.timecode || "00:00:00",
-        category: q.category || "认知金句",
-        socialHooks: q.socialHooks || {
-          xiaohongshu: "",
-          weibo: "",
-          posterCaption: "",
-        },
-      }));
-    }
+    const quotes: GoldenQuote[] | undefined = parsed.quotes
+      ? parsed.quotes.map((q: any, idx: number): GoldenQuote => ({
+          id: `q-${Date.now()}-${idx + 1}`,
+          text: q.text || "",
+          timecode: q.timecode || "00:00:00",
+          category: q.category || "认知金句",
+          socialHooks: q.socialHooks || {
+            xiaohongshu: "",
+            weibo: "",
+            posterCaption: "",
+          },
+        }))
+      : undefined;
 
-    if (parsed.packaging) {
-      project.packaging = parsed.packaging;
-    }
+    // 写回时重新读取，只更新本次生成的资产，避免覆盖等待 LLM 期间的其他改动
+    const saved = StorageService.updateProject(projectId, (latest) => ({
+      ...latest,
+      shortVideos: shortVideos ?? latest.shortVideos,
+      quotes: quotes ?? latest.quotes,
+      packaging: parsed.packaging ?? latest.packaging,
+      status: "completed",
+    }));
 
-    project.status = "completed";
-    StorageService.saveProject(project);
+    if (!saved) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
       success: true,
       data: {
-        shortVideos: project.shortVideos,
-        quotes: project.quotes,
-        packaging: project.packaging,
+        shortVideos: saved.shortVideos,
+        quotes: saved.quotes,
+        packaging: saved.packaging,
       },
     });
   } catch (err: any) {

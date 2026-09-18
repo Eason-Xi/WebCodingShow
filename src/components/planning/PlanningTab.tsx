@@ -97,10 +97,11 @@ export default function PlanningTab({ project, onUpdate }: Props) {
 
     setNoteSaving(true);
     try {
+      // 只提交 chapters：整份项目快照会覆盖并发进行中的 AI 结果
       await requestJson(`/api/projects/${project.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+        body: JSON.stringify({ chapters }),
       });
     } catch (e) {
       toast.error("笔记未能同步到服务端", e instanceof Error ? e.message : "网络请求异常");

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个资深访谈策划总监，按故事脉络组织采访章节与多级问题，只输出严格 JSON 格式。" },
       { role: "user", content: prompt },
-    ], true);
+    ], { jsonMode: true, task: "plan" });
 
     let planData;
     try {
@@ -58,14 +58,18 @@ export async function POST(req: NextRequest) {
       throw new Error("未能从模型返回中解析出任何章节，请检查返回结构是否包含 chapters");
     }
 
-    project.chapters = formattedChapters;
-    if (project.status === "planning") {
-      project.status = "interviewing";
+    // 写回时重新读取，只更新章节与状态，避免覆盖等待 LLM 期间的其他改动
+    const saved = StorageService.updateProject(projectId, (latest) => ({
+      ...latest,
+      chapters: formattedChapters,
+      status: latest.status === "planning" ? "interviewing" : latest.status,
+    }));
+
+    if (!saved) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
     }
 
-    StorageService.saveProject(project);
-
-    return NextResponse.json({ success: true, data: formattedChapters });
+    return NextResponse.json({ success: true, data: saved.chapters });
   } catch (err: any) {
     console.error("策划大纲生成错误:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });

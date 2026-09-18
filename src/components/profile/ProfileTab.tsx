@@ -72,10 +72,11 @@ export default function ProfileTab({ project, onUpdate }: Props) {
       "正在保存资料...",
       "资料已加入资料库",
       () =>
+        // 只提交 rawMaterials，避免覆盖并发进行中的 AI 结果
         requestJson<InterviewProject>(`/api/projects/${project.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedProject),
+          body: JSON.stringify({ rawMaterials: updatedProject.rawMaterials }),
         }),
       "保存资料失败"
     );
@@ -131,10 +132,11 @@ export default function ProfileTab({ project, onUpdate }: Props) {
       "正在删除资料...",
       "资料已移除",
       () =>
+        // 只提交 rawMaterials，避免覆盖并发进行中的 AI 结果
         requestJson<InterviewProject>(`/api/projects/${project.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedProject),
+          body: JSON.stringify({ rawMaterials: updatedProject.rawMaterials }),
         }),
       "删除资料失败"
     );

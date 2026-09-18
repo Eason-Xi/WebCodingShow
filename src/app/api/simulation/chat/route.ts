@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const aiReply = await LLMGateway.chat([
       { role: "system", content: systemPrompt },
       ...historyForLLM,
-    ]);
+    ], { task: "chat" });
 
     const guestMsg: SimulationMessage = {
       id: `msg-${Date.now()}-g`,
@@ -48,16 +48,34 @@ export async function POST(req: NextRequest) {
       content: aiReply,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
-    project.simulationSession.messages.push(guestMsg);
+    // 写回时重新读取最新项目再追加消息：
+    // 等待 LLM 期间用户可能标记了问题状态或改了笔记，整体写回会把这些改动覆盖掉。
+    const saved = StorageService.updateProject(projectId, (latest) => {
+      const session = latest.simulationSession ?? {
+        id: `sim-${Date.now()}`,
+        projectId,
+        messages: [],
+        createdAt: new Date().toISOString(),
+      };
 
-    StorageService.saveProject(project);
+      const appended = [...session.messages];
+      // 幂等追加，避免并发请求重复写入同一条消息
+      if (!appended.some((m) => m.id === userMsg.id)) appended.push(userMsg);
+      if (!appended.some((m) => m.id === guestMsg.id)) appended.push(guestMsg);
+
+      return { ...latest, simulationSession: { ...session, messages: appended } };
+    });
+
+    if (!saved) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
       success: true,
       data: {
         userMessage: userMsg,
         guestMessage: guestMsg,
-        allMessages: project.simulationSession.messages,
+        allMessages: saved.simulationSession?.messages ?? [],
       },
     });
   } catch (err: any) {

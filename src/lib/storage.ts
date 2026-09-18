@@ -364,4 +364,30 @@ export class StorageService {
     }
     return false;
   }
+
+  /**
+   * 原子地「重新读取 → 应用变更 → 写回」。
+   *
+   * AI 路由的典型流程是「读项目 → 等 LLM（真实模型下要数秒）→ 整体写回」。
+   * 等待期间用户的其它操作（标记已问、编辑笔记、录入资料）会被这份过期快照整体覆盖。
+   *
+   * 改成写回时重新读取最新数据、只应用本路由负责的字段，就不会丢并发更新。
+   * 函数体全程同步（同步 fs + 单线程），不会与其他请求交错执行。
+   */
+  static updateProject(
+    id: string,
+    mutate: (project: InterviewProject) => InterviewProject
+  ): InterviewProject | null {
+    const projects = this.getProjects();
+    const index = projects.findIndex((p) => p.id === id);
+    if (index < 0) return null;
+
+    const next = mutate(projects[index]);
+    next.id = id;
+    next.updatedAt = new Date().toISOString();
+    projects[index] = next;
+
+    fs.writeFileSync(DATA_FILE, JSON.stringify(projects, null, 2), "utf-8");
+    return next;
+  }
 }

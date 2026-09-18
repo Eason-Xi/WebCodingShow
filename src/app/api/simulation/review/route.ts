@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个严格、专业的访谈总导演，输出复盘 JSON 结构。" },
       { role: "user", content: prompt },
-    ], true);
+    ], { jsonMode: true, task: "review" });
 
     let reviewReport;
     try {
@@ -39,8 +39,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    project.simulationSession.reviewReport = reviewReport;
-    StorageService.saveProject(project);
+    // 写回时重新读取最新项目，只写入复盘报告，避免覆盖等待 LLM 期间的其他改动
+    const saved = StorageService.updateProject(projectId, (latest) => ({
+      ...latest,
+      simulationSession: latest.simulationSession
+        ? { ...latest.simulationSession, reviewReport }
+        : {
+            id: `sim-${Date.now()}`,
+            projectId,
+            messages: [],
+            reviewReport,
+            createdAt: new Date().toISOString(),
+          },
+    }));
+
+    if (!saved) {
+      return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
+    }
 
     return NextResponse.json({ success: true, data: reviewReport });
   } catch (err: any) {
