@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { InterviewProject, RawMaterial } from "@/types";
+import { InterviewProject, GuestProfile, RawMaterial } from "@/types";
 import {
   Sparkles,
   Plus,
@@ -14,12 +14,32 @@ import {
   FileText,
   Tag,
   RefreshCw,
+  Quote,
+  X,
+  Trash2,
 } from "lucide-react";
+import {
+  Chip,
+  EmptyState,
+  Field,
+  SectionTitle,
+  TabHeader,
+  type Tone,
+} from "@/components/ui/Primitives";
+import { requestJson, runTask, toast, confirmDialog } from "@/components/ui/Feedback";
 
 interface Props {
   project: InterviewProject;
   onUpdate: (updated: InterviewProject) => void;
 }
+
+const MATERIAL_META: Record<RawMaterial["type"], { label: string; tone: Tone }> = {
+  article: { label: "公众号 / 文章", tone: "indigo" },
+  social: { label: "社媒 / 微博", tone: "pink" },
+  link: { label: "外部视频 / 链接", tone: "cyan" },
+  note: { label: "观察笔记", tone: "amber" },
+  text: { label: "文本", tone: "slate" },
+};
 
 export default function ProfileTab({ project, onUpdate }: Props) {
   const [analyzing, setAnalyzing] = useState(false);
@@ -30,7 +50,10 @@ export default function ProfileTab({ project, onUpdate }: Props) {
 
   const handleAddMaterial = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle || !newContent) return;
+    if (!newTitle || !newContent) {
+      toast.error("资料不完整", "请填写资料标题与正文内容。");
+      return;
+    }
 
     const newMat: RawMaterial = {
       id: `mat-${Date.now()}`,
@@ -45,127 +68,173 @@ export default function ProfileTab({ project, onUpdate }: Props) {
       rawMaterials: [...project.rawMaterials, newMat],
     };
 
-    try {
-      const res = await fetch(`/api/projects/${project.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedProject),
-      });
-      const json = await res.json();
-      if (json.success) {
-        onUpdate(json.data);
-        setNewTitle("");
-        setNewContent("");
-        setShowAddMaterial(false);
-      }
-    } catch (err) {
-      console.error(err);
+    const { ok, data } = await runTask<InterviewProject>(
+      "正在保存资料...",
+      "资料已加入资料库",
+      () =>
+        requestJson<InterviewProject>(`/api/projects/${project.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedProject),
+        }),
+      "保存资料失败"
+    );
+
+    if (ok && data) {
+      onUpdate(data);
+      setNewTitle("");
+      setNewContent("");
+      setShowAddMaterial(false);
     }
   };
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
-    try {
-      const res = await fetch("/api/research/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId: project.id }),
+
+    const { ok, data } = await runTask<GuestProfile>(
+      "AI 正在深度挖掘人物档案...",
+      "人物深度研究档案已生成",
+      () =>
+        requestJson<GuestProfile>("/api/research/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: project.id }),
+        }),
+      "人物研究失败"
+    );
+
+    if (ok && data) {
+      onUpdate({
+        ...project,
+        profile: data,
+        status: project.status === "researching" ? "planning" : project.status,
       });
-      const json = await res.json();
-      if (json.success) {
-        onUpdate({
-          ...project,
-          profile: json.data,
-          status: project.status === "researching" ? "planning" : project.status,
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAnalyzing(false);
     }
+    setAnalyzing(false);
+  };
+
+  const handleRemoveMaterial = async (mat: RawMaterial) => {
+    const confirmed = await confirmDialog({
+      title: "删除这份资料？",
+      description: `「${mat.title}」将从嘉宾资料库中移除。已生成的人物档案不会自动更新，可重新运行 AI 人物研究。`,
+      confirmText: "删除资料",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    const updatedProject = {
+      ...project,
+      rawMaterials: project.rawMaterials.filter((m) => m.id !== mat.id),
+    };
+
+    const { ok, data } = await runTask<InterviewProject>(
+      "正在删除资料...",
+      "资料已移除",
+      () =>
+        requestJson<InterviewProject>(`/api/projects/${project.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedProject),
+        }),
+      "删除资料失败"
+    );
+
+    if (ok && data) onUpdate(data);
   };
 
   const profile = project.profile;
 
   return (
-    <div className="space-y-8">
-      {/* 顶部操作条 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl">
-        <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Compass className="w-5 h-5 text-indigo-400" />
-            嘉宾资料库与 AI 人物深度研究
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            聚合嘉宾全网资料，AI 主动挖掘人物的核心转变、认知矛盾、信息空白与最具采访张力的 5 大方向。
-          </p>
-        </div>
+    <div className="space-y-6">
+      <TabHeader
+        icon={Compass}
+        tone="sky"
+        title="嘉宾资料库与 AI 人物深度研究"
+        description="聚合嘉宾全网资料，AI 主动挖掘人物的核心转变、认知矛盾、信息空白与最具采访张力的 5 大方向。"
+        meta={
+          <>
+            <Chip tone="slate">{project.rawMaterials.length} 份资料</Chip>
+            {profile && (
+              <Chip tone="emerald" dot>
+                档案已生成
+              </Chip>
+            )}
+          </>
+        }
+        actions={
+          <>
+            <button
+              onClick={() => setShowAddMaterial((v) => !v)}
+              className="btn btn-secondary btn-md"
+            >
+              {showAddMaterial ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+              {showAddMaterial ? "收起" : "录入新资料"}
+            </button>
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing}
+              className="btn btn-primary btn-md"
+            >
+              <RefreshCw className={analyzing ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
+              {analyzing ? "AI 深度挖掘中..." : profile ? "重新生成人物档案" : "一键 AI 人物研究"}
+            </button>
+          </>
+        }
+      />
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowAddMaterial(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            录入新资料
-          </button>
-          <button
-            onClick={handleAnalyze}
-            disabled={analyzing}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-500/20 disabled:opacity-50 transition-all"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${analyzing ? "animate-spin" : ""}`} />
-            {analyzing ? "AI 深度挖掘中..." : "一键 AI 人物研究"}
-          </button>
-        </div>
-      </div>
-
-      {/* 新增资料抽屉/模态框 */}
+      {/* 新增资料 */}
       {showAddMaterial && (
-        <div className="glass-panel p-6 rounded-2xl border border-indigo-500/30">
-          <h3 className="text-sm font-bold text-white mb-3">录入嘉宾资料（文章 / 专访 / 采访记录 / 个人碎语）</h3>
-          <form onSubmit={handleAddMaterial} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input
-                type="text"
-                required
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="资料标题（如：极客公园专访报道）"
-                className="sm:col-span-2 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-              />
-              <select
-                value={newType}
-                onChange={(e) => setNewType(e.target.value as any)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-indigo-500"
-              >
-                <option value="article">公众号/文章</option>
-                <option value="social">社媒/微博/小红书</option>
-                <option value="link">外部视频/链接</option>
-                <option value="note">个人观察笔记</option>
-              </select>
+        <div className="glass-panel animate-rise rounded-2xl border-indigo-500/25 p-5 sm:p-6">
+          <SectionTitle icon={FileText} tone="indigo" className="mb-4">
+            录入嘉宾资料
+            <span className="ml-1 text-[11px] font-normal text-4">
+              文章 / 专访 / 采访速记 / 个人碎语
+            </span>
+          </SectionTitle>
+          <form onSubmit={handleAddMaterial} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Field label="资料标题" required className="sm:col-span-2">
+                <input
+                  type="text"
+                  required
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="如：极客公园专访报道"
+                  className="field"
+                />
+              </Field>
+              <Field label="资料类型">
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value as RawMaterial["type"])}
+                  className="field"
+                >
+                  <option value="article">公众号 / 文章</option>
+                  <option value="social">社媒 / 微博 / 小红书</option>
+                  <option value="link">外部视频 / 链接</option>
+                  <option value="note">个人观察笔记</option>
+                </select>
+              </Field>
             </div>
-            <textarea
-              rows={4}
-              required
-              value={newContent}
-              onChange={(e) => setNewContent(e.target.value)}
-              placeholder="在此粘贴嘉宾资料内容、采访速记或过去说过的话..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500 resize-none"
-            />
-            <div className="flex justify-end gap-2">
+            <Field label="资料正文">
+              <textarea
+                rows={5}
+                required
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                placeholder="在此粘贴嘉宾资料内容、采访速记或过去说过的话..."
+                className="field resize-none leading-relaxed"
+              />
+            </Field>
+            <div className="flex justify-end gap-2 border-t border-line-1 pt-4">
               <button
                 type="button"
                 onClick={() => setShowAddMaterial(false)}
-                className="px-3 py-1.5 rounded-lg text-xs text-slate-400 hover:text-white"
+                className="btn btn-ghost btn-md"
               >
                 取消
               </button>
-              <button
-                type="submit"
-                className="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500"
-              >
+              <button type="submit" className="btn btn-primary btn-md">
                 保存资料
               </button>
             </div>
@@ -174,200 +243,262 @@ export default function ProfileTab({ project, onUpdate }: Props) {
       )}
 
       {/* 主视图左右分栏 */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 左侧：资料库列表 */}
-        <div className="lg:col-span-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-indigo-400" />
-              原始资料库 ({project.rawMaterials.length})
-            </span>
-          </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        {/* 左侧：资料库 */}
+        <div className="space-y-3 lg:col-span-4">
+          <SectionTitle
+            icon={FileText}
+            tone="indigo"
+            extra={<span className="tabular text-[11px] text-4">{project.rawMaterials.length}</span>}
+          >
+            原始资料库
+          </SectionTitle>
 
           {project.rawMaterials.length === 0 ? (
-            <div className="glass-card p-6 rounded-xl text-center text-xs text-slate-500">
-              暂未收录资料，点击上方“录入新资料”导入背景文本。
-            </div>
+            <EmptyState
+              compact
+              icon={FileText}
+              title="暂未收录资料"
+              description="导入嘉宾的报道、专访或过往言论，AI 才能挖出有张力的问题。"
+              action={
+                <button
+                  onClick={() => setShowAddMaterial(true)}
+                  className="btn btn-secondary btn-sm"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  录入新资料
+                </button>
+              }
+            />
           ) : (
             <div className="space-y-3">
-              {project.rawMaterials.map((mat) => (
-                <div key={mat.id} className="glass-card p-4 rounded-xl border border-slate-800">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400">
-                      {mat.type}
-                    </span>
-                    <span className="text-[10px] text-slate-500">
-                      {new Date(mat.addedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <h4 className="text-xs font-bold text-white mb-1.5">{mat.title}</h4>
-                  <p className="text-[11px] text-slate-400 line-clamp-3 leading-relaxed">
-                    {mat.content}
-                  </p>
-                </div>
-              ))}
+              {project.rawMaterials.map((mat) => {
+                const meta = MATERIAL_META[mat.type] ?? MATERIAL_META.text;
+                return (
+                  <article key={mat.id} className="glass-card card-hover group rounded-xl p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <Chip tone={meta.tone} className="px-2 py-0.5 text-[10px]">
+                        {meta.label}
+                      </Chip>
+                      <div className="flex items-center gap-1.5">
+                        <span className="tabular text-[10px] text-4">
+                          {new Date(mat.addedAt).toLocaleDateString("zh-CN")}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveMaterial(mat)}
+                          title="删除这份资料"
+                          className="btn btn-ghost btn-xs -mr-1 text-4 opacity-60 transition-opacity hover:bg-rose-500/10 hover:text-rose-300 group-hover:opacity-100"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <h4 className="mt-2.5 text-xs font-semibold leading-snug text-1">
+                      {mat.title}
+                    </h4>
+                    <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-3">
+                      {mat.content}
+                    </p>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>
 
-        {/* 右侧：AI 人物深度档案 */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* 右侧：AI 人物档案 */}
+        <div className="space-y-5 lg:col-span-8">
           {!profile ? (
-            <div className="glass-panel p-12 rounded-2xl text-center">
-              <Sparkles className="w-8 h-8 text-indigo-400 mx-auto mb-3 animate-pulse" />
-              <h3 className="text-sm font-bold text-white">尚未生成 AI 人物深度研究档案</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                点击上方“一键 AI 人物研究”，AI 将深度提炼嘉宾标签、人生时间线、内心冲突及最值得深挖的采访角度。
-              </p>
-              <button
-                onClick={handleAnalyze}
-                disabled={analyzing}
-                className="mt-4 px-4 py-2 rounded-xl text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-500"
-              >
-                {analyzing ? "分析中..." : "立即开始分析"}
-              </button>
-            </div>
+            <EmptyState
+              icon={Sparkles}
+              title="尚未生成 AI 人物深度研究档案"
+              description="点击「一键 AI 人物研究」，AI 将深度提炼嘉宾标签、人生时间线、内心冲突及最值得深挖的采访角度。"
+              action={
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  className="btn btn-primary btn-md"
+                >
+                  <RefreshCw className={analyzing ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                  {analyzing ? "分析中..." : "立即开始分析"}
+                </button>
+              }
+            />
           ) : (
             <>
               {/* 人物身份卡 */}
-              <div className="glass-card p-6 rounded-2xl border-l-4 border-indigo-500">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
+              <section className="glass-card animate-rise overflow-hidden rounded-2xl">
+                <div className="flex flex-wrap items-start gap-4 p-6">
+                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/25 to-violet-500/10 text-lg font-semibold text-indigo-200">
+                    {profile.identity.name?.slice(0, 1) || "?"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-semibold tracking-tight text-1">
                       {profile.identity.name}
-                      <span className="text-xs font-normal text-slate-400">
-                        ({profile.identity.title})
-                      </span>
                     </h3>
-                    <p className="text-xs text-indigo-300 mt-0.5">{profile.identity.company}</p>
+                    <p className="mt-0.5 text-xs text-3">
+                      {profile.identity.title}
+                      {profile.identity.company && (
+                        <span className="text-4"> · {profile.identity.company}</span>
+                      )}
+                    </p>
+                    {profile.lastAnalyzedAt && (
+                      <p className="mt-1 text-[10px] text-4">
+                        档案更新时间 {new Date(profile.lastAnalyzedAt).toLocaleString("zh-CN")}
+                      </p>
+                    )}
                   </div>
                 </div>
-
-                <p className="text-xs text-slate-300 mt-3 leading-relaxed bg-slate-900/50 p-3 rounded-xl border border-slate-800">
-                  {profile.identity.summary}
-                </p>
-
-                <div className="flex flex-wrap gap-1.5 mt-3">
-                  {profile.identity.tags.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
-                    >
-                      <Tag className="w-3 h-3 text-indigo-400" />
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* 核心亮点：最值得深挖的 5 个采访方向 */}
-              <div className="glass-card p-6 rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 to-purple-950/20">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-2 mb-3">
-                  <Flame className="w-4 h-4 text-amber-400" />
-                  本次采访最值得深挖的 5 个方向（导演精选）
-                </h4>
-                <div className="space-y-2">
-                  {profile.top5Directions.map((dir, i) => (
-                    <div
-                      key={i}
-                      className="flex items-start gap-3 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-200"
-                    >
-                      <span className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
-                        0{i + 1}
-                      </span>
-                      <p className="leading-relaxed">{dir}</p>
+                <div className="border-t border-line-1 px-6 py-4">
+                  <p className="text-xs leading-relaxed text-2">{profile.identity.summary}</p>
+                  {profile.identity.tags?.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {profile.identity.tags.map((tag, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 text-[11px] text-indigo-300"
+                        >
+                          <Tag className="h-3 w-3" />
+                          {tag}
+                        </span>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
+              </section>
 
-              {/* 核心亮点：人物矛盾点与信息空白 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="glass-card p-5 rounded-2xl border-l-4 border-amber-500">
-                  <h4 className="text-xs font-bold text-amber-400 flex items-center gap-1.5 mb-3">
-                    <AlertTriangle className="w-4 h-4" />
-                    人物矛盾点与内心张力（极具出彩点）
-                  </h4>
-                  <ul className="space-y-2 text-xs text-slate-300">
-                    {profile.conflicts.map((conf, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-amber-500 font-bold">•</span>
-                        <span>{conf}</span>
+              {/* 5 个深挖方向 */}
+              {profile.top5Directions?.length > 0 && (
+                <section className="glass-card animate-rise stagger-2 rounded-2xl border-indigo-500/25 p-6">
+                  <SectionTitle
+                    icon={Flame}
+                    tone="amber"
+                    className="mb-4"
+                    extra={
+                      <Chip tone="amber" className="px-2 py-0.5 text-[10px]">
+                        导演精选
+                      </Chip>
+                    }
+                  >
+                    本次采访最值得深挖的 5 个方向
+                  </SectionTitle>
+                  <ol className="space-y-2.5">
+                    {profile.top5Directions.map((dir, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 rounded-xl border border-line-1 bg-surface-1 p-3.5 transition-colors hover:border-indigo-500/25 hover:bg-surface-2"
+                      >
+                        <span className="tabular grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-[11px] font-bold text-indigo-300">
+                          {i + 1}
+                        </span>
+                        <p className="text-xs leading-relaxed text-2">{dir}</p>
                       </li>
                     ))}
-                  </ul>
-                </div>
+                  </ol>
+                </section>
+              )}
 
-                <div className="glass-card p-5 rounded-2xl border-l-4 border-cyan-500">
-                  <h4 className="text-xs font-bold text-cyan-400 flex items-center gap-1.5 mb-3">
-                    <HelpCircle className="w-4 h-4" />
-                    资料中的盲区与空白（独家提问点）
-                  </h4>
-                  <ul className="space-y-2 text-xs text-slate-300">
-                    {profile.blanks.map((blank, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-cyan-400 font-bold">•</span>
-                        <span>{blank}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+              {/* 矛盾点 / 盲区 */}
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {profile.conflicts?.length > 0 && (
+                  <section className="glass-card animate-rise stagger-3 rounded-2xl border-l-2 border-l-amber-500/70 p-5">
+                    <SectionTitle icon={AlertTriangle} tone="amber" className="mb-3.5">
+                      矛盾点与内心张力
+                    </SectionTitle>
+                    <ul className="space-y-2.5">
+                      {profile.conflicts.map((conf, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                          <span>{conf}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {profile.blanks?.length > 0 && (
+                  <section className="glass-card animate-rise stagger-4 rounded-2xl border-l-2 border-l-cyan-500/70 p-5">
+                    <SectionTitle icon={HelpCircle} tone="cyan" className="mb-3.5">
+                      资料盲区与空白
+                    </SectionTitle>
+                    <ul className="space-y-2.5">
+                      {profile.blanks.map((blank, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-2">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                          <span>{blank}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
               </div>
 
-              {/* 人生时间线 */}
-              <div className="glass-card p-6 rounded-2xl">
-                <h4 className="text-xs font-bold text-slate-300 flex items-center gap-2 mb-4">
-                  <Clock className="w-4 h-4 text-indigo-400" />
-                  人生关键时间线与心态转折
-                </h4>
-                <div className="relative pl-6 border-l border-indigo-500/30 space-y-4">
-                  {profile.timeline.map((item, i) => (
-                    <div key={i} className="relative group">
-                      <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-950" />
-                      <div className="text-xs">
-                        <span className="font-bold text-indigo-400">{item.period}</span>
-                        <p className="text-slate-200 font-medium mt-0.5">{item.event}</p>
+              {/* 时间线 */}
+              {profile.timeline?.length > 0 && (
+                <section className="glass-card animate-rise rounded-2xl p-6">
+                  <SectionTitle icon={Clock} tone="violet" className="mb-5">
+                    人生关键时间线与心态转折
+                  </SectionTitle>
+                  <div className="relative space-y-5 border-l border-line-2 pl-6">
+                    {profile.timeline.map((item, i) => (
+                      <div key={i} className="relative">
+                        <span className="absolute -left-[27px] top-1.5 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 ring-4 ring-[color:var(--bg-base)]" />
+                        <p className="tabular text-[11px] font-semibold text-indigo-300">
+                          {item.period}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-relaxed text-1">
+                          {item.event}
+                        </p>
                         {item.significance && (
-                          <p className="text-[11px] text-slate-400 mt-1 italic">
-                            转折意义：{item.significance}
+                          <p className="mt-1.5 rounded-lg border border-line-1 bg-surface-1 px-3 py-2 text-[11px] italic leading-relaxed text-3">
+                            {item.significance}
                           </p>
                         )}
                       </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* 代表作品 / 核心观点 */}
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {profile.representativeWorks?.length > 0 && (
+                  <section className="glass-card rounded-2xl p-5">
+                    <SectionTitle icon={Award} tone="purple" className="mb-3.5">
+                      代表作品
+                    </SectionTitle>
+                    <div className="space-y-2.5">
+                      {profile.representativeWorks.map((work, i) => (
+                        <div key={i} className="inset rounded-xl p-3">
+                          <p className="text-xs font-semibold text-1">{work.title}</p>
+                          <p className="mt-1 text-[11px] leading-relaxed text-3">{work.desc}</p>
+                          {work.impact && (
+                            <p className="mt-1.5 text-[11px] text-purple-300">{work.impact}</p>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </section>
+                )}
 
-              {/* 代表作品与核心观点 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="glass-card p-5 rounded-2xl">
-                  <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-3">
-                    <Award className="w-4 h-4 text-purple-400" />
-                    代表作品
-                  </h4>
-                  <div className="space-y-2">
-                    {profile.representativeWorks.map((work, i) => (
-                      <div key={i} className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800 text-xs">
-                        <div className="font-semibold text-white">{work.title}</div>
-                        <div className="text-slate-400 text-[11px] mt-0.5">{work.desc}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="glass-card p-5 rounded-2xl">
-                  <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-3">
-                    <FileText className="w-4 h-4 text-emerald-400" />
-                    过往核心观点
-                  </h4>
-                  <div className="space-y-2">
-                    {profile.keyOpinions.map((op, i) => (
-                      <div key={i} className="bg-slate-900/50 p-2.5 rounded-xl border border-slate-800 text-xs text-slate-300 italic">
-                        “{op}”
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {profile.keyOpinions?.length > 0 && (
+                  <section className="glass-card rounded-2xl p-5">
+                    <SectionTitle icon={Quote} tone="emerald" className="mb-3.5">
+                      过往核心观点
+                    </SectionTitle>
+                    <div className="space-y-2.5">
+                      {profile.keyOpinions.map((op, i) => (
+                        <div
+                          key={i}
+                          className="inset rounded-xl p-3 text-xs italic leading-relaxed text-2"
+                        >
+                          <Quote className="mb-1 h-3 w-3 text-emerald-400/60" />
+                          {op}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
               </div>
             </>
           )}

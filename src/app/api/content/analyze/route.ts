@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 防御：模型（或本地兜底）返回了结构对不上的 JSON 时，必须显式失败，
+    // 否则接口会返回 success:true 但什么都没生成，前端只会看到「成功」却空空如也。
+    if (!parsed.shortVideos && !parsed.quotes && !parsed.packaging) {
+      throw new Error("未能从逐字稿中解析出拆条 / 金句 / 包装资产，请检查模型返回结构");
+    }
+
     if (parsed.shortVideos) {
       project.shortVideos = parsed.shortVideos.map((sv: any, idx: number): ShortVideoClip => ({
         id: `sv-${Date.now()}-${idx + 1}`,

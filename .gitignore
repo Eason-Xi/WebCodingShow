@@ -7,3 +7,9 @@ dev.db
 dev.db-journal
 .DS_Store
 Thumbs.db
+
+# 本地视觉验证截图等临时产物
+.preview/
+
+# 工作区元数据（记忆、会话状态），不入库
+.workbuddy-ai/

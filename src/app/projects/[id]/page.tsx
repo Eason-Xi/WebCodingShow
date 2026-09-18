@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import clsx from "clsx";
 import {
   ArrowLeft,
   Compass,
@@ -10,18 +11,25 @@ import {
   Mic,
   FileAudio,
   Video,
-  Sparkles,
   Clock,
   Trash2,
+  Check,
+  Users,
+  Target,
 } from "lucide-react";
 import { InterviewProject } from "@/types";
+import { WORKFLOW_STAGES, STATUS_META, getProjectProgress, StageKey } from "@/lib/workflow";
+import { Chip, ProgressBar } from "@/components/ui/Primitives";
+import { confirmDialog, requestJson, runTask, toast } from "@/components/ui/Feedback";
 import ProfileTab from "@/components/profile/ProfileTab";
 import PlanningTab from "@/components/planning/PlanningTab";
 import InterviewTab from "@/components/interview/InterviewTab";
 import TranscriptTab from "@/components/transcript/TranscriptTab";
 import ContentTab from "@/components/content/ContentTab";
 
-type ActiveTab = "profile" | "planning" | "interview" | "transcript" | "content";
+type ActiveTab = StageKey;
+
+const STAGE_ICONS = [Compass, BookOpen, Mic, FileAudio, Video];
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -38,9 +46,11 @@ export default function ProjectDetailPage() {
       const json = await res.json();
       if (json.success) {
         setProject(json.data);
+      } else {
+        toast.error("加载项目失败", json.error || "服务端未返回该项目");
       }
     } catch (err) {
-      console.error(err);
+      toast.error("加载项目失败", err instanceof Error ? err.message : "网络请求异常");
     } finally {
       setLoading(false);
     }
@@ -50,151 +60,322 @@ export default function ProjectDetailPage() {
     if (id) fetchProject();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!confirm("确定要删除此访谈项目吗？")) return;
-    try {
-      await fetch(`/api/projects/${id}`, { method: "DELETE" });
-      router.push("/");
-    } catch (err) {
-      console.error(err);
+  // Tab 与 URL hash 同步：刷新 / 分享链接后仍停留在同一阶段
+  useEffect(() => {
+    const sync = () => {
+      const key = window.location.hash.replace("#", "");
+      if (WORKFLOW_STAGES.some((s) => s.key === key)) {
+        setActiveTab(key as ActiveTab);
+      }
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+
+  const selectTab = (key: ActiveTab) => {
+    setActiveTab(key);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${key}`);
     }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = await confirmDialog({
+      title: "删除该访谈项目？",
+      description: `「${project?.guestName || "该项目"}」的全部资料、提纲、逐字稿与拆条资产都会被永久移除，此操作不可恢复。`,
+      confirmText: "删除项目",
+      tone: "danger",
+    });
+    if (!confirmed) return;
+
+    const { ok } = await runTask(
+      "正在删除项目...",
+      "项目已删除",
+      () => requestJson(`/api/projects/${id}`, { method: "DELETE" }),
+      "删除项目失败"
+    );
+    if (ok) router.push("/");
   };
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-sm text-slate-500">
-        正在载入访谈项目全生命周期上下文...
+      <div className="shell w-full py-8">
+        <div className="glass-panel h-40 animate-pulse rounded-3xl" />
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[264px_minmax(0,1fr)]">
+          <div className="glass-panel hidden h-80 animate-pulse rounded-2xl lg:block" />
+          <div className="glass-panel h-96 animate-pulse rounded-2xl" />
+        </div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-base font-bold text-white">未找到该访谈项目</h2>
-        <Link href="/" className="text-xs text-indigo-400 hover:underline mt-2 inline-block">
+      <div className="shell w-full py-24 text-center">
+        <h2 className="text-base font-semibold text-1">未找到该访谈项目</h2>
+        <Link href="/" className="btn btn-secondary btn-sm mt-4">
+          <ArrowLeft className="h-3.5 w-3.5" />
           返回我的访谈看板
         </Link>
       </div>
     );
   }
 
-  const TABS = [
-    { id: "profile" as ActiveTab, label: "资料 · 档案研究", icon: Compass, count: project.rawMaterials.length },
-    {
-      id: "planning" as ActiveTab,
-      label: "策划 · 叙事提纲",
-      icon: BookOpen,
-      count: project.chapters.reduce((acc, c) => acc + c.questions.length, 0),
-    },
-    {
-      id: "interview" as ActiveTab,
-      label: "采访 · 彩排提词",
-      icon: Mic,
-      count: project.simulationSession?.messages?.length ? "已演练" : undefined,
-    },
-    { id: "transcript" as ActiveTab, label: "整理 · 逐字稿", icon: FileAudio, count: project.transcript?.length || 0 },
-    { id: "content" as ActiveTab, label: "内容 · 拆条包装", icon: Video, count: project.shortVideos?.length || 0 },
-  ];
+  const progress = getProjectProgress(project);
+  const status = STATUS_META[project.status] ?? STATUS_META.researching;
+  const totalQuestions = project.chapters.reduce((acc, c) => acc + c.questions.length, 0);
+
+  const COUNTS: Record<StageKey, number | string | undefined> = {
+    profile: project.rawMaterials.length,
+    planning: totalQuestions,
+    interview: project.simulationSession?.messages?.length ? "已演练" : undefined,
+    transcript: project.transcript?.length || 0,
+    content: project.shortVideos?.length || 0,
+  };
+
+  const STEPS = WORKFLOW_STAGES.map((stage, i) => ({
+    ...stage,
+    icon: STAGE_ICONS[i],
+    count: COUNTS[stage.key],
+    done: progress.done[i],
+  }));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full space-y-6">
-      {/* 顶部面包屑与项目信息头 */}
-      <div className="glass-panel p-6 rounded-3xl border border-slate-800">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
+    <div className="shell w-full py-8">
+      {/* ============ 项目信息头 ============ */}
+      <header className="glass-panel animate-rise relative overflow-hidden rounded-3xl p-6 sm:p-7">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0">
+            {/* 面包屑 */}
+            <div className="flex flex-wrap items-center gap-2 text-[11px]">
               <Link
                 href="/"
-                className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1 text-3 transition-colors hover:text-1"
               >
-                <ArrowLeft className="w-3.5 h-3.5" />
+                <ArrowLeft className="h-3.5 w-3.5" />
                 返回项目列表
               </Link>
-              <span className="text-slate-600">/</span>
-              <span className="text-xs text-indigo-400 font-medium">{project.interviewStyle}</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <Clock className="w-3 h-3 text-slate-500" />
+              <span className="text-4">/</span>
+              <span className="font-medium text-indigo-300">{project.interviewStyle}</span>
+              <span className="text-4">/</span>
+              <span className="tabular flex items-center gap-1 text-3">
+                <Clock className="h-3 w-3" />
                 {project.durationMinutes} 分钟
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="mt-3 text-[26px] font-semibold leading-tight tracking-tightest text-gradient sm:text-[32px]">
               {project.guestName}
-              <span className="text-slate-400 font-normal text-lg ml-2">
-                · {project.topic}
-              </span>
             </h1>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-2">{project.topic}</p>
 
-            <p className="text-xs text-slate-400 mt-1">
-              嘉宾头衔：<span className="text-slate-300">{project.guestTitle || "未指定"}</span>
-              {project.targetAudience && (
-                <> · 目标受众：<span className="text-slate-300">{project.targetAudience}</span></>
+            {/* 元信息 */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Chip tone={status.tone} dot>
+                {status.label}
+              </Chip>
+              {project.guestTitle && (
+                <Chip tone="slate">
+                  <Users className="h-3 w-3" />
+                  {project.guestTitle}
+                </Chip>
               )}
-            </p>
+              {project.showType && <Chip tone="violet">{project.showType}</Chip>}
+              {project.targetAudience && (
+                <Chip tone="cyan">
+                  <Target className="h-3 w-3" />
+                  {project.targetAudience}
+                </Chip>
+              )}
+            </div>
+
+            {project.focusDirection && (
+              <p className="inset mt-4 max-w-3xl rounded-xl p-3 text-xs leading-relaxed text-3">
+                <span className="font-medium text-indigo-300">重点挖掘方向 · </span>
+                {project.focusDirection}
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
+            {/* 进度环 */}
+            <div className="hidden items-center gap-4 rounded-2xl border border-line-1 bg-surface-1 px-4 py-3 sm:flex">
+              <div className="relative h-12 w-12">
+                <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15.5"
+                    fill="none"
+                    stroke="rgba(148,163,184,0.16)"
+                    strokeWidth="3"
+                  />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15.5"
+                    fill="none"
+                    stroke="url(#pg)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(progress.percent / 100) * 97.4} 97.4`}
+                    className="transition-[stroke-dasharray] duration-700 ease-out"
+                  />
+                  <defs>
+                    <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#818cf8" />
+                      <stop offset="100%" stopColor="#c084fc" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="tabular absolute inset-0 grid place-items-center text-[11px] font-semibold text-1">
+                  {progress.percent}%
+                </span>
+              </div>
+              <div>
+                <p className="text-[11px] text-4">全流程进度</p>
+                <p className="tabular text-xs font-medium text-2">
+                  {progress.completed} / {progress.total} 阶段完成
+                </p>
+              </div>
+            </div>
+
             <button
               onClick={handleDelete}
-              className="p-2 rounded-xl text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
               title="删除项目"
+              className="btn btn-ghost btn-md hover:bg-rose-500/10 hover:text-rose-300"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </div>
+      </header>
 
-        {/* 五大主流程 TAB 导航 */}
-        <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center gap-2 overflow-x-auto pb-1">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+      {/* ============ 主体：左侧流程导航 + 右侧内容 ============ */}
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[264px_minmax(0,1fr)]">
+        {/* 侧栏流程导航 */}
+        <aside className="hidden lg:block">
+          <nav className="glass-panel sticky top-24 space-y-1 rounded-2xl p-2.5">
+            <p className="eyebrow px-3 pb-2 pt-1.5">工作流</p>
+            {STEPS.map((step) => {
+              const Icon = step.icon;
+              const isActive = activeTab === step.key;
+              return (
+                <button
+                  key={step.key}
+                  onClick={() => selectTab(step.key)}
+                  className={clsx(
+                    "group relative flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200",
+                    isActive
+                      ? "border-indigo-500/30 bg-indigo-500/[0.12]"
+                      : "border-transparent hover:bg-surface-2"
+                  )}
+                >
+                  {isActive && (
+                    <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-gradient-to-b from-indigo-400 to-violet-400" />
+                  )}
+                  <span
+                    className={clsx(
+                      "grid h-7 w-7 shrink-0 place-items-center rounded-lg border text-[11px] font-semibold transition-colors",
+                      step.done
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                        : isActive
+                        ? "border-indigo-400/40 bg-indigo-500/20 text-indigo-200"
+                        : "border-line-2 bg-surface-2 text-4 group-hover:text-3"
+                    )}
+                  >
+                    {step.done ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2">
+                      <span
+                        className={clsx(
+                          "truncate text-xs font-semibold",
+                          isActive ? "text-1" : "text-2"
+                        )}
+                      >
+                        {step.short}
+                      </span>
+                      {step.count !== undefined && step.count !== 0 && (
+                        <span className="tabular shrink-0 rounded-full tint-3 px-1.5 py-0.5 text-[10px] text-3">
+                          {step.count}
+                        </span>
+                      )}
+                    </span>
+                    <span
+                      className={clsx(
+                        "mt-1 block text-[11px] leading-snug",
+                        isActive ? "text-2" : "text-3"
+                      )}
+                    >
+                      {step.description}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+
+            <div className="mt-2 border-t border-line-1 px-3 pb-1 pt-3">
+              <div className="mb-2 flex items-center justify-between text-[11px] text-4">
+                <span>整体进度</span>
+                <span className="tabular">{progress.percent}%</span>
+              </div>
+              <ProgressBar
+                percent={progress.percent}
+                tone={progress.percent === 100 ? "emerald" : "indigo"}
+              />
+            </div>
+          </nav>
+        </aside>
+
+        {/* 移动端横向步骤条 */}
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:hidden">
+          {STEPS.map((step) => {
+            const Icon = step.icon;
+            const isActive = activeTab === step.key;
             return (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                key={step.key}
+                onClick={() => selectTab(step.key)}
+                className={clsx(
+                  "flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-colors",
                   isActive
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/40"
-                    : "bg-slate-900/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/60"
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-slate-500"}`} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isActive ? "bg-indigo-800 text-indigo-200" : "bg-slate-800 text-slate-400"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
+                    ? "border-indigo-500/35 bg-indigo-500/15 text-indigo-100"
+                    : "border-line-1 bg-surface-1 text-3"
                 )}
+              >
+                {step.done ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                ) : (
+                  <Icon className="h-3.5 w-3.5" />
+                )}
+                {step.short}
               </button>
             );
           })}
         </div>
-      </div>
 
-      {/* 各 Tab 视图渲染 */}
-      <div className="w-full">
-        {activeTab === "profile" && (
-          <ProfileTab project={project} onUpdate={(updated) => setProject(updated)} />
-        )}
-        {activeTab === "planning" && (
-          <PlanningTab project={project} onUpdate={(updated) => setProject(updated)} />
-        )}
-        {activeTab === "interview" && (
-          <InterviewTab project={project} onUpdate={(updated) => setProject(updated)} />
-        )}
-        {activeTab === "transcript" && (
-          <TranscriptTab project={project} onUpdate={(updated) => setProject(updated)} />
-        )}
-        {activeTab === "content" && (
-          <ContentTab project={project} onUpdate={(updated) => setProject(updated)} />
-        )}
+        {/* Tab 内容 */}
+        <div key={activeTab} className="animate-fade min-w-0">
+          {activeTab === "profile" && (
+            <ProfileTab project={project} onUpdate={(updated) => setProject(updated)} />
+          )}
+          {activeTab === "planning" && (
+            <PlanningTab project={project} onUpdate={(updated) => setProject(updated)} />
+          )}
+          {activeTab === "interview" && (
+            <InterviewTab project={project} onUpdate={(updated) => setProject(updated)} />
+          )}
+          {activeTab === "transcript" && (
+            <TranscriptTab project={project} onUpdate={(updated) => setProject(updated)} />
+          )}
+          {activeTab === "content" && (
+            <ContentTab project={project} onUpdate={(updated) => setProject(updated)} />
+          )}
+        </div>
       </div>
     </div>
   );

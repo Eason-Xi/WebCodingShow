@@ -67,8 +67,101 @@ export class LLMGateway {
   private static mockResponse(messages: ChatCompletionMessage[], jsonMode: boolean): string {
     const lastMsg = messages[messages.length - 1]?.content || "";
 
+    // ⚠️ 分发顺序必须从最具体到最宽泛：
+    // ANALYZE_TRANSCRIPT_AND_PACKAGING 的 JSON schema 里含 "chaptersTimeline"，
+    // 会误命中下方策划大纲分支的 "chapters"，因此 "shortVideos" 必须排在最前面。
+
+    // 0. 逐字稿拆条与全网包装（最具体，优先匹配）
+    if (lastMsg.includes("shortVideos")) {
+      return JSON.stringify({
+        themes: [
+          { timeRange: "00:00-05:30", title: "传统剧组的出走", summary: "从副导演到一人工作室的身份转折" },
+          { timeRange: "05:30-18:00", title: "一人工作流拆解", summary: "生成式工具如何替代传统分工" },
+          { timeRange: "18:00-30:00", title: "代价与未来", summary: "效率跃升背后的心理成本与行业预判" }
+        ],
+        shortVideos: [
+          {
+            title: "《AI 不是助力，它击穿了导演所有偷偷的退路》",
+            duration: "00:48",
+            inPoint: "00:01:25",
+            outPoint: "00:02:13",
+            coreOpinion: "全流程一人化的残酷真相：所有退路都无可退躲，成败只归于你自己。",
+            coverTitle: "AI 抢走退路：你再也不能怪任何人",
+            scriptSnippet: "以前在剧组，出了事你可以怪摄影、怪美术、怪天气。现在只有你一个人，所有环节都是你，没有一处不对，都是你自己的审美缺陷。"
+          },
+          {
+            title: "《因为用 AI 拍片，我被最好的摄影师朋友拉黑了》",
+            duration: "01:05",
+            inPoint: "00:04:28",
+            outPoint: "00:05:33",
+            coreOpinion: "技术浪潮冲下的人性与友情裂变，是这场变革最真实的代价。",
+            coverTitle: "被写「恰烂本赚快钱」：一个 AI 导演的决裂日记",
+            scriptSnippet: "很多人在群里说我是在给资本赚快钱，但其实这个行业从来不讲情怀。AI 没有让导演消失，它只是让更多有表达欲的普通人拿到了导筒。"
+          },
+          {
+            title: "《当工具足够强，你的审美就是最后一道门槛》",
+            duration: "00:52",
+            inPoint: "00:12:40",
+            outPoint: "00:13:32",
+            coreOpinion: "工具平权之后，真正的稀缺资源从技术能力转移到了文学底蕴与审美颗粒度。",
+            coverTitle: "工具在狂欢，灵魂在喘气",
+            scriptSnippet: "当工具帮你解决掉所有画面时，你唯一的瓶颈就是你的精神浓度与审美颗粒度。"
+          }
+        ],
+        quotes: [
+          {
+            text: "AI 没有让导演消失，它只是让更多有表达欲的普通人拿到了导筒。",
+            timecode: "00:09:12",
+            category: "行业洞察",
+            socialHooks: {
+              xiaohongshu: "做 AI 内容第三年，我终于想通了一件事：🎬 没有导演会消失，只有还在观望的技术创作者。",
+              weibo: "【对话 AI 独立导演】AI 没有让导演消失，它只是让更多有表达欲的普通人拿到了导筒。#AI 创作# #内容行业观察#",
+              posterCaption: "技术门槛归零，审美与思想才是护城河。"
+            }
+          },
+          {
+            text: "当工具替你解决掉所有画面时，你唯一的瓶颈就是你的精神浓度与审美颗粒度。",
+            timecode: "00:13:48",
+            category: "人生哲思",
+            socialHooks: {
+              xiaohongshu: "AI 时代，创作者最稀缺的能力到底是什么？看完这场对话我沉默了…",
+              weibo: "【对话 AI 独立导演】工具门槛归零时，真正的门槛变成了你的文学底蕴与审美颗粒度。#AI 创作#",
+              posterCaption: "工具在狂欢，灵魂在喘气。"
+            }
+          },
+          {
+            text: "一个人是一支军队，也意味着你独自面对所有的创作焦虑。",
+            timecode: "00:22:30",
+            category: "情绪共鸣",
+            socialHooks: {
+              xiaohongshu: "一个人做完整条片子的第 40 天，我开始理解「自由」的反面是什么。",
+              weibo: "【对话 AI 独立导演】一个人是一支军队，也意味着你独自面对所有的创作焦虑。#独立创作#",
+              posterCaption: "自由的反面，是无人分担的深夜。"
+            }
+          }
+        ],
+        packaging: {
+          youtubeTitle: "一个人拍完一部电影：AI 导演的真实工作流与代价 | 深度对话",
+          bilibiliTitle: "【深度访谈】AI 没有让导演消失，它只是让普通人拿到了导筒",
+          douyinTitle: "被朋友拉黑也要拍：一个 AI 导演的自白",
+          xiaohongshuTitle: "做 AI 内容三年，我最想说的一句话：工具在狂欢，灵魂在喘气",
+          showDescription:
+            "本期对话一位从传统剧组出走、如今独自跑通全流程的 AI 独立导演。\n\n他用四个月、一台机器，完成了过去需要几十人团队才能推进的科幻短片。在这期访谈里，我们聊了传统工业流程被击碎后的真实处境、一个人扛下全部流水线时的心理代价，以及当工具门槛归零后，创作者真正稀缺的东西到底是什么。\n\n「AI 没有让导演消失，它只是让更多有表达欲的普通人拿到了导筒。」",
+          chaptersTimeline:
+            "00:00 开场：一个人完成一部电影的现场\n01:25 传统剧组的生存状态与出走\n04:28 与老搭档决裂的那一天\n09:12 AI 到底改变了什么\n12:40 审美与精神浓度才是门槛\n18:00 效率跃升背后的心理代价\n22:30 未来剧组还会剩下几个岗位",
+          seoKeywords: ["AI 导演", "一人影视工作室", "生成式 AI", "独立创作", "影视行业变革"]
+        }
+      }, null, 2);
+    }
+
     // 1. 判断是否为人物画像提取
-    if (lastMsg.includes("人物最值得被提问的灵魂张力") || lastMsg.includes("identity")) {
+    // ⚠️ GENERATE_PLAN 的 prompt 会内嵌人物档案 JSON，其中含 "identity" 字段，
+    // 因此必须排除同时携带 chapters / overallRating 的请求，否则策划大纲会被误判成画像提取。
+    if (
+      (lastMsg.includes("人物最值得被提问的灵魂张力") || lastMsg.includes("identity")) &&
+      !lastMsg.includes("chapters") &&
+      !lastMsg.includes("overallRating")
+    ) {
       return JSON.stringify({
         identity: {
           name: "张三",

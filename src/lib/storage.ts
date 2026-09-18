@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { InterviewProject } from "@/types";
+import { normalizeProject } from "@/lib/normalize";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "projects.json");
@@ -324,7 +325,10 @@ export class StorageService {
     this.ensureDataDir();
     try {
       const data = fs.readFileSync(DATA_FILE, "utf-8");
-      return JSON.parse(data) as InterviewProject[];
+      const parsed = JSON.parse(data);
+      // 统一在读取处归一化：无论数据是怎么写进来的（AI 缺字段、手工编辑、
+      // 旧版本格式），UI 拿到的都是完整形状，不会因 undefined 访问而白屏。
+      return (Array.isArray(parsed) ? parsed : []).map(normalizeProject);
     } catch (e) {
       console.error("Failed to read projects from storage", e);
       return [INITIAL_DEMO_PROJECT];

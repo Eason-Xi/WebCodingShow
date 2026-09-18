@@ -53,6 +53,11 @@ export async function POST(req: NextRequest) {
       })),
     }));
 
+    // 防御：解析不出任何章节时必须显式失败，避免返回 success:true 却给出空大纲
+    if (formattedChapters.length === 0) {
+      throw new Error("未能从模型返回中解析出任何章节，请检查返回结构是否包含 chapters");
+    }
+
     project.chapters = formattedChapters;
     if (project.status === "planning") {
       project.status = "interviewing";
