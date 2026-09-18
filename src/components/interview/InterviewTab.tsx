@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Quote,
   StickyNote,
+  Check,
 } from "lucide-react";
 import clsx from "clsx";
 import { Chip, SectionTitle, TabHeader } from "@/components/ui/Primitives";
@@ -108,17 +109,33 @@ export default function InterviewTab({ project, onUpdate }: Props) {
     setReviewLoading(false);
   };
 
-  // 提词台标记问题状态
-  const handleUpdateQuestionStatus = async (
+  const allQuestionsFlat = project.chapters.flatMap((c) => c.questions);
+  const currentQ = allQuestionsFlat[currentQuestionIdx] || allQuestionsFlat[0];
+  // 由当前问题反推所属章节（修复跨章节标记错位）
+  const currentChapter =
+    project.chapters.find((ch) => ch.questions.some((q) => q.id === currentQ?.id)) ||
+    project.chapters[0];
+
+  const askedCount = allQuestionsFlat.filter((q) => q.status === "asked").length;
+  const highlightCount = allQuestionsFlat.filter((q) => q.status === "highlight").length;
+  const skippedCount = allQuestionsFlat.filter((q) => q.status === "skipped").length;
+
+  // 提词台标记问题状态（支持 Toggle 撤销与即时反馈）
+  const handleToggleQuestionStatus = async (
     chId: string,
     qId: string,
-    status: QuestionStatus
+    targetStatus: QuestionStatus
   ) => {
+    const q = allQuestionsFlat.find((item) => item.id === qId);
+    const nextStatus: QuestionStatus = q?.status === targetStatus ? "pending" : targetStatus;
+
     const updatedChapters = project.chapters.map((ch) => {
       if (ch.id === chId) {
         return {
           ...ch,
-          questions: ch.questions.map((q) => (q.id === qId ? { ...q, status } : q)),
+          questions: ch.questions.map((item) =>
+            item.id === qId ? { ...item, status: nextStatus } : item
+          ),
         };
       }
       return ch;
@@ -126,6 +143,17 @@ export default function InterviewTab({ project, onUpdate }: Props) {
 
     const updated = { ...project, chapters: updatedChapters };
     onUpdate(updated);
+
+    // 即时操作微反馈
+    if (nextStatus === "highlight") {
+      toast.success("已标记为高光金句", "该问题已被高亮记录为全场焦点");
+    } else if (nextStatus === "asked") {
+      toast.success("已标记为已问", "已记录为完成提问");
+    } else if (nextStatus === "skipped") {
+      toast.info("已跳过此题", "该问题已标注为跳过");
+    } else {
+      toast.info("已恢复为待提问", "已清除当前题目的状态标记");
+    }
 
     try {
       // 只提交变更的字段：整份项目快照会把并发进行中的 AI 结果（如复盘报告）覆盖掉
@@ -141,13 +169,6 @@ export default function InterviewTab({ project, onUpdate }: Props) {
       );
     }
   };
-
-  const allQuestionsFlat = project.chapters.flatMap((c) => c.questions);
-  const currentQ = allQuestionsFlat[currentQuestionIdx] || allQuestionsFlat[0];
-  // 由当前问题反推所属章节（修复跨章节标记错位）
-  const currentChapter =
-    project.chapters.find((ch) => ch.questions.some((q) => q.id === currentQ?.id)) ||
-    project.chapters[0];
 
   const simSession = project.simulationSession;
   const messages = simSession?.messages || [];
@@ -185,16 +206,16 @@ export default function InterviewTab({ project, onUpdate }: Props) {
         // 标记已问并自动推进到下一题
         e.preventDefault();
         if (currentQ && currentChapter) {
-          handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "asked");
+          handleToggleQuestionStatus(currentChapter.id, currentQ.id, "asked");
           setCurrentQuestionIdx((p) => Math.min(last, p + 1));
         }
       } else if (e.key === "h" || e.key === "H") {
         if (currentQ && currentChapter) {
-          handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "highlight");
+          handleToggleQuestionStatus(currentChapter.id, currentQ.id, "highlight");
         }
       } else if (e.key === "s" || e.key === "S") {
         if (currentQ && currentChapter) {
-          handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "skipped");
+          handleToggleQuestionStatus(currentChapter.id, currentQ.id, "skipped");
         }
       }
     };
@@ -580,13 +601,53 @@ export default function InterviewTab({ project, onUpdate }: Props) {
           </div>
 
           {/* 主体 */}
-          <div className="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12">
-            <div className="mx-auto w-full max-w-4xl text-center">
-              <Chip tone="indigo" className="px-3.5 py-1 text-xs font-bold tracking-[0.14em]">
-                CURRENT QUESTION · 当前提问
-              </Chip>
+          <div
+            className={clsx(
+              "relative flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 transition-all duration-300",
+              currentQ?.status === "highlight" && "bg-amber-500/[0.03]",
+              currentQ?.status === "asked" && "bg-emerald-500/[0.02]"
+            )}
+          >
+            {/* 高光氛围光晕 */}
+            {currentQ?.status === "highlight" && (
+              <div className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 mx-auto h-72 w-3/4 rounded-full bg-amber-500/10 blur-3xl" />
+            )}
 
-              <h1 className="mt-8 text-3xl font-extrabold leading-[1.38] tracking-tight text-1 sm:text-[44px]">
+            <div className="relative mx-auto w-full max-w-4xl text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                <Chip tone="indigo" className="px-3.5 py-1 text-xs font-bold tracking-[0.14em]">
+                  CURRENT QUESTION · 当前提问
+                </Chip>
+                {currentQ?.status === "highlight" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-600 dark:text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.25)] animate-pulse">
+                    <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 dark:fill-amber-300 dark:text-amber-300" />
+                    高光金句聚焦
+                  </span>
+                )}
+                {currentQ?.status === "asked" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="h-3.5 w-3.5 fill-emerald-500/20" />
+                    本题已问
+                  </span>
+                )}
+                {currentQ?.status === "skipped" && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-500/30 bg-slate-500/15 px-3 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <SkipForward className="h-3.5 w-3.5" />
+                    已跳过
+                  </span>
+                )}
+              </div>
+
+              <h1
+                className={clsx(
+                  "mt-8 text-3xl font-extrabold leading-[1.38] tracking-tight sm:text-[44px] transition-colors duration-200",
+                  currentQ?.status === "highlight"
+                    ? "text-amber-950 dark:text-amber-100"
+                    : currentQ?.status === "skipped"
+                    ? "text-3 line-through"
+                    : "text-1"
+                )}
+              >
                 {currentQ?.text || "提纲中暂无问题"}
               </h1>
 
@@ -627,6 +688,74 @@ export default function InterviewTab({ project, onUpdate }: Props) {
 
           {/* 底栏 */}
           <div className="border-t border-line-1 px-6 py-5 sm:px-8">
+            {/* 题目全局状态点阵与快捷跳转 */}
+            {allQuestionsFlat.length > 0 && (
+              <div className="mb-4">
+                <div className="mb-2 flex items-center justify-between text-xs text-3">
+                  <span className="font-mono">提纲点阵速览（点击任意题目直接定位）</span>
+                  <div className="flex items-center gap-3 font-mono">
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      已问 {askedCount}
+                    </span>
+                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                      <Star className="h-2.5 w-2.5 fill-current" />
+                      高光 {highlightCount}
+                    </span>
+                    {skippedCount > 0 && (
+                      <span className="flex items-center gap-1 text-slate-400">
+                        <span className="h-2 w-2 rounded-full bg-slate-400" />
+                        跳过 {skippedCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-1">
+                  {allQuestionsFlat.map((q, idx) => {
+                    const isCurrent = idx === currentQuestionIdx;
+                    const isAsked = q.status === "asked";
+                    const isHighlight = q.status === "highlight";
+                    const isSkipped = q.status === "skipped";
+
+                    return (
+                      <button
+                        key={q.id || idx}
+                        onClick={() => setCurrentQuestionIdx(idx)}
+                        title={`第 ${idx + 1} 题: ${q.text.slice(0, 30)}... [${
+                          isHighlight ? "高光" : isAsked ? "已问" : isSkipped ? "跳过" : "待问"
+                        }]`}
+                        className={clsx(
+                          "group relative flex h-7 min-w-[28px] items-center justify-center rounded-lg px-1.5 text-xs font-mono font-bold transition-all duration-200",
+                          isCurrent
+                            ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-surface-1 scale-105 z-10 shadow-sm"
+                            : "hover:scale-105",
+                          isHighlight
+                            ? "border border-amber-500/50 bg-amber-500/25 text-amber-800 dark:text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.25)]"
+                            : isAsked
+                            ? "border border-emerald-500/40 bg-emerald-500/20 text-emerald-800 dark:text-emerald-300"
+                            : isSkipped
+                            ? "border border-line-2 bg-surface-2 text-3 line-through opacity-60"
+                            : "border border-line-1 bg-surface-1 text-2 hover:bg-surface-2"
+                        )}
+                      >
+                        <span className="flex items-center gap-0.5">
+                          {isHighlight && (
+                            <Star className="h-2.5 w-2.5 fill-current text-amber-500 dark:text-amber-300" />
+                          )}
+                          {isAsked && (
+                            <Check className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
+                          )}
+                          <span>{idx + 1}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* 总体进度条 */}
             <div className="mb-4 flex items-center gap-3.5">
               <span className="tabular shrink-0 text-xs sm:text-sm font-bold text-3 font-mono">
                 {currentQuestionIdx + 1} / {allQuestionsFlat.length}
@@ -642,34 +771,73 @@ export default function InterviewTab({ project, onUpdate }: Props) {
 
             <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
               <div className="flex flex-wrap items-center gap-2.5">
-                <button
-                  onClick={() =>
-                    currentQ && handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "asked")
-                  }
-                  className="btn btn-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-sm font-medium"
-                >
-                  <CheckCircle2 className="h-4 w-4" />
-                  标记为已问
-                </button>
+                {/* 标记为已问 */}
                 <button
                   onClick={() =>
                     currentQ &&
-                    handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "skipped")
+                    currentChapter &&
+                    handleToggleQuestionStatus(currentChapter.id, currentQ.id, "asked")
                   }
-                  className="btn btn-secondary btn-md text-sm font-medium"
+                  className={clsx(
+                    "btn btn-md text-sm font-semibold transition-all duration-200",
+                    currentQ?.status === "asked"
+                      ? "border border-emerald-600 bg-emerald-600 text-white shadow-[0_2px_10px_rgba(16,185,129,0.3)] hover:bg-emerald-700 dark:border-emerald-500 dark:bg-emerald-500 dark:text-slate-950"
+                      : "border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 dark:text-emerald-300"
+                  )}
+                  title={currentQ?.status === "asked" ? "点击取消已问状态" : "标记为已完成提问"}
+                >
+                  <CheckCircle2
+                    className={clsx(
+                      "h-4 w-4 transition-transform",
+                      currentQ?.status === "asked" && "scale-110"
+                    )}
+                  />
+                  {currentQ?.status === "asked" ? "已标记为已问" : "标记为已问"}
+                </button>
+
+                {/* 跳过此题 */}
+                <button
+                  onClick={() =>
+                    currentQ &&
+                    currentChapter &&
+                    handleToggleQuestionStatus(currentChapter.id, currentQ.id, "skipped")
+                  }
+                  className={clsx(
+                    "btn btn-md text-sm font-semibold transition-all duration-200",
+                    currentQ?.status === "skipped"
+                      ? "border border-slate-600 bg-slate-600 text-white shadow-sm hover:bg-slate-700 dark:border-slate-300 dark:bg-slate-300 dark:text-slate-950"
+                      : "btn-secondary text-2"
+                  )}
+                  title={currentQ?.status === "skipped" ? "点击恢复为此题待问" : "跳过此题"}
                 >
                   <SkipForward className="h-4 w-4" />
-                  跳过此题
+                  {currentQ?.status === "skipped" ? "已跳过此题" : "跳过此题"}
                 </button>
+
+                {/* 标记为高光 */}
                 <button
                   onClick={() =>
                     currentQ &&
-                    handleUpdateQuestionStatus(currentChapter.id, currentQ.id, "highlight")
+                    currentChapter &&
+                    handleToggleQuestionStatus(currentChapter.id, currentQ.id, "highlight")
                   }
-                  className="btn btn-md border border-amber-500/30 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 text-sm font-medium"
+                  className={clsx(
+                    "btn btn-md text-sm font-semibold transition-all duration-200",
+                    currentQ?.status === "highlight"
+                      ? "border border-amber-500 bg-amber-500 text-slate-950 font-bold shadow-[0_0_18px_rgba(245,158,11,0.4)] hover:bg-amber-400"
+                      : "border border-amber-500/30 bg-amber-500/10 text-amber-800 hover:bg-amber-500/20 dark:text-amber-300"
+                  )}
+                  title={currentQ?.status === "highlight" ? "点击取消高光标记" : "标记为现场高光金句"}
                 >
-                  <Star className="h-4 w-4" />
-                  标记为高光
+                  <Star
+                    className={clsx(
+                      "h-4 w-4 transition-transform",
+                      currentQ?.status === "highlight"
+                        ? "fill-current text-slate-950 scale-110"
+                        : "text-amber-600 dark:text-amber-300"
+                    )}
+                  />
+                  {currentQ?.status === "highlight" ? "已标记高光" : "标记为高光"}
                 </button>
               </div>
 
