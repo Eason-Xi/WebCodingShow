@@ -38,7 +38,13 @@ interface Props {
 }
 
 export default function InterviewTab({ project, onUpdate }: Props) {
-  const [subMode, setSubMode] = useState<"simulation" | "teleprompter">("simulation");
+  const [subMode, setSubMode] = useState<"simulation" | "teleprompter">(() => {
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (sp.get("subMode") === "teleprompter") return "teleprompter";
+    }
+    return "simulation";
+  });
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
