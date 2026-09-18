@@ -31,14 +31,14 @@ export default function RootLayout({
               </span>
               <span className="flex flex-col">
                 <span className="flex items-center gap-2">
-                  <span className="text-[15px] font-bold tracking-tight text-1">
+                  <span className="text-base font-bold tracking-tight text-1">
                     AI 访谈导演
                   </span>
-                  <span className="rounded-full border border-lime-500/35 bg-lime-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-lime-600 dark:text-lime-300 font-mono">
+                  <span className="rounded-full border border-lime-500/35 bg-lime-400/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-[0.14em] text-lime-600 dark:text-lime-300 font-mono">
                     v1.0
                   </span>
                 </span>
-                <span className="text-[11px] leading-tight text-4">
+                <span className="text-xs leading-tight text-3">
                   采访者身旁的第二导演
                 </span>
               </span>
@@ -46,18 +46,18 @@ export default function RootLayout({
 
             {/* 右侧操作 */}
             <div className="flex items-center gap-2.5">
-              <div className="hidden items-center gap-2 rounded-full border border-line-1 bg-surface-2 px-3 py-1.5 text-[11px] text-3 md:flex font-mono">
-                <span className="relative flex h-1.5 w-1.5">
+              <div className="hidden items-center gap-2 rounded-full border border-line-1 bg-surface-2 px-3.5 py-1.5 text-xs text-3 md:flex font-mono">
+                <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-lime-400 animate-ping-soft" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-lime-400" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-lime-400" />
                 </span>
                 <span>DIRECTOR ENGINE ACTIVE</span>
               </div>
 
               <ThemeToggle />
 
-              <Link href="/" className="btn btn-secondary btn-sm h-9 px-4">
-                <LayoutGrid className="h-3.5 w-3.5" />
+              <Link href="/" className="btn btn-secondary btn-sm h-9 px-4 text-sm font-medium">
+                <LayoutGrid className="h-4 w-4" />
                 <span className="hidden sm:inline">我的访谈</span>
               </Link>
             </div>
@@ -68,9 +68,9 @@ export default function RootLayout({
         <main className="flex flex-1 flex-col">{children}</main>
 
         <footer className="border-t border-line-1 py-6">
-          <div className="shell flex flex-col items-center justify-between gap-2 text-[11px] text-4 sm:flex-row">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-indigo-400/70" />
+          <div className="shell flex flex-col items-center justify-between gap-2 text-xs text-3 sm:flex-row">
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-indigo-400/70" />
               资料研究 → 采访策划 → 彩排提词 → 录音转写 → 拆条包装
             </span>
             <span>AI 访谈导演 · Interview AI Workbench</span>

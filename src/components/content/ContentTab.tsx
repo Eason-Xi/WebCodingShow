@@ -200,10 +200,10 @@ export default function ContentTab({ project, onUpdate }: Props) {
           tone="pink"
           extra={
             shortVideos.length > 0 ? (
-              <div className="flex items-center gap-2">
-                <span className="tabular text-[11px] text-4">{shortVideos.length} 条</span>
-                <button onClick={handleCopyClips} className="btn btn-secondary btn-xs">
-                  <Copy className="h-3 w-3" />
+              <div className="flex items-center gap-2.5">
+                <span className="tabular text-xs font-mono text-3">{shortVideos.length} 条</span>
+                <button onClick={handleCopyClips} className="btn btn-secondary btn-sm text-xs font-medium">
+                  <Copy className="h-3.5 w-3.5" />
                   复制清单
                 </button>
               </div>
@@ -222,52 +222,52 @@ export default function ContentTab({ project, onUpdate }: Props) {
             description="点击右上角「一键拆条与生成宣发资产」，AI 将从逐字稿中提取最具传播力的片段。"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             {shortVideos.map((clip, idx) => (
               <article
                 key={clip.id}
                 className={`glass-card card-hover animate-rise stagger-${(idx % 6) + 1} group flex flex-col overflow-hidden rounded-2xl`}
               >
                 {/* 卡头：模拟时间轴条 */}
-                <div className="relative flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line-1 bg-gradient-to-r from-pink-500/[0.09] to-violet-500/[0.05] px-5 py-3">
-                  <span className="flex items-center gap-2 text-[11px] font-semibold text-pink-200">
-                    <span className="tabular grid h-6 w-6 place-items-center rounded-md border border-pink-500/30 bg-pink-500/15 text-[10px]">
+                <div className="relative flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line-1 bg-gradient-to-r from-pink-500/[0.09] to-violet-500/[0.05] px-5 py-3.5">
+                  <span className="flex items-center gap-2.5 text-xs font-bold text-pink-200">
+                    <span className="tabular grid h-6 w-6 place-items-center rounded-md border border-pink-500/30 bg-pink-500/15 text-xs">
                       {String(idx + 1).padStart(2, "0")}
                     </span>
                     短视频 · {clip.duration}
                   </span>
-                  <span className="tabular flex items-center gap-1.5 font-mono text-[11px] text-3">
-                    <Clock className="h-3 w-3 text-4" />
+                  <span className="tabular flex items-center gap-1.5 font-mono text-xs text-3 font-medium">
+                    <Clock className="h-3.5 w-3.5 text-3" />
                     {clip.inPoint} → {clip.outPoint}
                   </span>
                 </div>
 
-                <div className="flex flex-1 flex-col gap-3 p-5">
-                  <h4 className="text-sm font-semibold leading-snug tracking-tight text-1 transition-colors group-hover:text-pink-200">
+                <div className="flex flex-1 flex-col gap-3.5 p-5">
+                  <h4 className="text-base font-bold leading-snug tracking-tight text-1 transition-colors group-hover:text-pink-200">
                     {clip.title}
                   </h4>
 
-                  <div className="inset space-y-2.5 rounded-xl p-3.5">
+                  <div className="inset space-y-3 rounded-xl p-4 border border-line-1">
                     <div>
-                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-4">
-                        <AlignLeft className="h-3 w-3" />
+                      <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-3">
+                        <AlignLeft className="h-3.5 w-3.5" />
                         核心观点
                       </p>
-                      <p className="mt-1 text-xs leading-relaxed text-2">{clip.coreOpinion}</p>
+                      <p className="mt-1.5 text-sm leading-relaxed text-1">{clip.coreOpinion}</p>
                     </div>
-                    <div className="border-t border-line-1 pt-2.5">
-                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-amber-400/80">
-                        <Type className="h-3 w-3" />
+                    <div className="border-t border-line-1 pt-3">
+                      <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-400">
+                        <Type className="h-3.5 w-3.5" />
                         建议封面大字
                       </p>
-                      <p className="mt-1 text-xs font-semibold leading-relaxed text-amber-200">
+                      <p className="mt-1.5 text-base font-bold leading-relaxed text-amber-200">
                         {clip.coverTitle}
                       </p>
                     </div>
                   </div>
 
                   {clip.scriptSnippet && (
-                    <p className="line-clamp-2 border-l-2 border-line-2 pl-3 text-[11px] italic leading-relaxed text-3">
+                    <p className="line-clamp-3 border-l-2 border-line-2 pl-3.5 text-xs sm:text-[13px] italic leading-relaxed text-2">
                       {clip.scriptSnippet}
                     </p>
                   )}
@@ -285,8 +285,8 @@ export default function ContentTab({ project, onUpdate }: Props) {
           tone="amber"
           extra={
             quotes.length > 0 ? (
-              <button onClick={handleCopyQuotes} className="btn btn-secondary btn-xs">
-                <Copy className="h-3 w-3" />
+              <button onClick={handleCopyQuotes} className="btn btn-secondary btn-sm text-xs font-medium">
+                <Copy className="h-3.5 w-3.5" />
                 复制全部金句
               </button>
             ) : undefined
@@ -304,57 +304,57 @@ export default function ContentTab({ project, onUpdate }: Props) {
             description="完成拆条后，AI 会同步提炼可直接发布的金句与配套社媒文案。"
           />
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             {quotes.map((q) => (
               <article
                 key={q.id}
-                className="glass-card animate-rise flex flex-col rounded-2xl border-l-2 border-l-amber-500/70 p-5"
+                className="glass-card animate-rise flex flex-col rounded-2xl border-l-2 border-l-amber-500/70 p-5 sm:p-6"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <Chip tone="amber" className="px-2 py-0.5 text-[10px]">
+                  <Chip tone="amber" className="px-2.5 py-0.5 text-xs font-semibold">
                     {q.category}
                   </Chip>
                   {q.timecode && (
-                    <span className="tabular font-mono text-[10px] text-4">{q.timecode}</span>
+                    <span className="tabular font-mono text-xs text-3">{q.timecode}</span>
                   )}
                 </div>
 
-                <blockquote className="mt-3.5 border-l-2 border-amber-500/30 pl-3.5">
-                  <p className="text-[13px] font-medium italic leading-relaxed text-1">{q.text}</p>
+                <blockquote className="mt-4 border-l-2 border-amber-500/40 pl-4">
+                  <p className="text-base sm:text-lg font-bold italic leading-relaxed text-1">{q.text}</p>
                 </blockquote>
 
-                <div className="mt-4 space-y-2 border-t border-line-1 pt-3.5">
+                <div className="mt-5 space-y-3 border-t border-line-1 pt-4">
                   {[
                     {
                       key: "xhs",
                       label: "小红书配文",
-                      tone: "text-rose-300",
+                      tone: "text-rose-400 dark:text-rose-300",
                       value: q.socialHooks?.xiaohongshu,
                     },
                     {
                       key: "wb",
                       label: "微博文案",
-                      tone: "text-amber-300",
+                      tone: "text-amber-400 dark:text-amber-300",
                       value: q.socialHooks?.weibo,
                     },
                   ]
                     .filter((row) => row.value)
                     .map((row) => (
-                      <div key={row.key} className="inset rounded-xl p-3">
+                      <div key={row.key} className="inset rounded-xl p-3.5 border border-line-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className={`text-[11px] font-semibold ${row.tone}`}>
+                          <span className={`text-xs sm:text-[13px] font-bold ${row.tone}`}>
                             {row.label}
                           </span>
                           <CopyButton text={row.value!} id={`${q.id}-${row.key}`} />
                         </div>
-                        <p className="mt-1.5 text-[11px] leading-relaxed text-3">{row.value}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-1">{row.value}</p>
                       </div>
                     ))}
 
                   {q.socialHooks?.posterCaption && (
-                    <div className="inset rounded-xl p-3">
+                    <div className="inset rounded-xl p-3.5 border border-line-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold text-indigo-300">
+                        <span className="text-xs sm:text-[13px] font-bold text-indigo-400 dark:text-indigo-300">
                           海报文案
                         </span>
                         <CopyButton
@@ -362,7 +362,7 @@ export default function ContentTab({ project, onUpdate }: Props) {
                           id={`${q.id}-poster`}
                         />
                       </div>
-                      <p className="mt-1.5 text-[11px] leading-relaxed text-3">
+                      <p className="mt-2 text-sm leading-relaxed text-1">
                         {q.socialHooks.posterCaption}
                       </p>
                     </div>
@@ -381,7 +381,7 @@ export default function ContentTab({ project, onUpdate }: Props) {
             icon={Share2}
             tone="indigo"
             extra={
-              <Chip tone="indigo" className="px-2 py-0.5 text-[10px]">
+              <Chip tone="indigo" className="px-2.5 py-0.5 text-xs font-semibold">
                 可直接复制发布
               </Chip>
             }
@@ -389,39 +389,39 @@ export default function ContentTab({ project, onUpdate }: Props) {
             全网多平台标题与节目包装
           </SectionTitle>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             {PLATFORMS.map((p) =>
               p.value ? (
-                <div key={p.label} className="inset rounded-xl p-3.5">
+                <div key={p.label} className="inset rounded-xl p-4 border border-line-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className={`text-[11px] font-semibold ${p.tone}`}>{p.label} 标题</span>
+                    <span className={`text-xs sm:text-[13px] font-bold ${p.tone}`}>{p.label} 标题</span>
                     <CopyButton text={p.value} id={`pkg-${p.label}`} />
                   </div>
-                  <p className="mt-1.5 text-xs leading-relaxed text-2">{p.value}</p>
+                  <p className="mt-2 text-sm sm:text-base font-semibold leading-relaxed text-1">{p.value}</p>
                 </div>
               ) : null
             )}
           </div>
 
           {packaging.showDescription && (
-            <div className="inset rounded-xl p-3.5">
+            <div className="inset rounded-xl p-4 border border-line-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold text-2">官方节目全局简介</span>
+                <span className="text-xs sm:text-[13px] font-bold text-1">官方节目全局简介</span>
                 <CopyButton text={packaging.showDescription} id="pkg-desc" />
               </div>
-              <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-3">
+              <p className="mt-2.5 whitespace-pre-wrap text-sm leading-relaxed text-2">
                 {packaging.showDescription}
               </p>
             </div>
           )}
 
           {packaging.chaptersTimeline && (
-            <div className="inset rounded-xl p-3.5">
+            <div className="inset rounded-xl p-4 border border-line-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-semibold text-2">分P章节时间戳导航</span>
+                <span className="text-xs sm:text-[13px] font-bold text-1">分P章节时间戳导航</span>
                 <CopyButton text={packaging.chaptersTimeline} id="pkg-timeline" />
               </div>
-              <pre className="mt-2 whitespace-pre-wrap font-mono text-[11px] leading-relaxed text-3">
+              <pre className="mt-2.5 whitespace-pre-wrap font-mono text-xs sm:text-[13px] leading-relaxed text-2">
                 {packaging.chaptersTimeline}
               </pre>
             </div>
@@ -429,13 +429,13 @@ export default function ContentTab({ project, onUpdate }: Props) {
 
           {packaging.seoKeywords?.length > 0 && (
             <div>
-              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-4">
-                <Hash className="h-3 w-3" />
+              <p className="mb-2.5 flex items-center gap-1.5 text-xs font-bold text-3">
+                <Hash className="h-3.5 w-3.5" />
                 SEO 关键词
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {packaging.seoKeywords.map((kw, i) => (
-                  <Chip key={i} tone="slate" className="px-2 py-0.5 text-[10px]">
+                  <Chip key={i} tone="slate" className="px-2.5 py-1 text-xs font-medium">
                     {kw}
                   </Chip>
                 ))}

@@ -197,15 +197,15 @@ export function TabHeader({
         <div className="flex min-w-0 items-start gap-4">
           <IconTile icon={icon} tone={tone} size="lg" />
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[15px] font-semibold tracking-tight text-1">{title}</h2>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-lg font-bold tracking-tight text-1 sm:text-xl">{title}</h2>
               {meta}
             </div>
-            <p className="mt-1.5 max-w-3xl text-xs leading-relaxed text-3">{description}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-2">{description}</p>
           </div>
         </div>
         {actions && (
-          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:pl-4">{actions}</div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5 lg:pl-4">{actions}</div>
         )}
       </div>
     </div>
@@ -231,7 +231,7 @@ export function SectionTitle({
 }) {
   return (
     <div className={clsx("flex items-center justify-between gap-3", className)}>
-      <h3 className="flex items-center gap-2 text-[13px] font-semibold tracking-tight text-1">
+      <h3 className="flex items-center gap-2 text-base font-bold tracking-tight text-1">
         {Icon && <Icon className={clsx("h-4 w-4", TONE[tone].text)} />}
         {children}
       </h3>
@@ -277,8 +277,8 @@ export function EmptyState({
       />
       <div className="relative">
         <IconTile icon={Icon} tone={tone} size="lg" className="mx-auto mb-4" />
-        <h3 className="text-sm font-semibold text-1">{title}</h3>
-        <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-3">{description}</p>
+        <h3 className="text-base font-bold text-1">{title}</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-2">{description}</p>
         {action && <div className="mt-5 flex justify-center">{action}</div>}
       </div>
     </div>
@@ -371,7 +371,7 @@ export function Field({
       <label className="field-label">
         {label}
         {required && <span className="ml-0.5 text-rose-400">*</span>}
-        {hint && <span className="ml-2 font-normal text-4">{hint}</span>}
+        {hint && <span className="ml-2 font-normal text-xs text-3">{hint}</span>}
       </label>
       {children}
     </div>

@@ -25,11 +25,11 @@
     --line-2: rgba(255, 255, 255, 0.16);
     --line-3: rgba(255, 255, 255, 0.28);
 
-    /* ---- 文字 ---- */
-    --text-1: #f7f7f2;
-    --text-2: #c5c7cc;
-    --text-3: #8a8e96;
-    --text-4: #5c616b;
+    /* ---- 文字（增强对比度与辨识度） ---- */
+    --text-1: #fbfbf7;
+    --text-2: #d4d7dd;
+    --text-3: #a0a6b2;
+    --text-4: #798090;
 
     /* ---- Jev 品牌核心令牌 ---- */
     --c-obsidian: #0b0c0f;
@@ -161,10 +161,10 @@
     --line-2: #d8d4c8;
     --line-3: #c0baa8;
 
-    --text-1: #121417;
-    --text-2: #2d3139;
-    --text-3: #5c626d;
-    --text-4: #858a94;
+    --text-1: #0f1115;
+    --text-2: #252830;
+    --text-3: #3f444e;
+    --text-4: #5d6370;
 
     --c-obsidian: #0b0c0f;
     --c-paper: #f3f1e9;
@@ -337,16 +337,16 @@
     transition-timing-function: var(--ease-out);
   }
   .btn-xs {
-    @apply h-7 px-3 text-[11px];
+    @apply h-7 px-3 text-xs;
   }
   .btn-sm {
-    @apply h-8 px-3.5 text-xs;
+    @apply h-8 px-3.5 text-xs sm:text-[13px];
   }
   .btn-md {
-    @apply h-10 px-5 text-sm;
+    @apply h-10 px-5 text-sm font-medium;
   }
   .btn-lg {
-    @apply h-11 px-6 text-sm;
+    @apply h-11 px-6 text-sm sm:text-base font-semibold;
   }
 
   /* Jev 标志性高光青柠主按钮（全主题统一保持极光青柠高辨识度） */
@@ -487,7 +487,7 @@
     box-shadow: 0 0 0 4px rgb(var(--c-indigo-500) / 0.12);
   }
   .field-label {
-    @apply mb-1.5 block text-xs font-medium;
+    @apply mb-1.5 block text-sm font-medium;
     color: var(--text-2);
   }
   select.field option {
@@ -495,15 +495,15 @@
     color: var(--text-1);
   }
 
-  /* --- 徽标基类（色调由工具类覆盖，故不设颜色） --- */
+  /* --- 徽标基类（字号提升至 12px 舒适阅读） --- */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px]
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs
       font-medium leading-none;
   }
 
   /* --- 分区标题 --- */
   .eyebrow {
-    @apply text-[11px] font-semibold uppercase tracking-[0.14em];
+    @apply text-xs font-semibold uppercase tracking-[0.12em];
     color: var(--text-3);
   }
 

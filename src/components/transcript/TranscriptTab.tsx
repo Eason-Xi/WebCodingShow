@@ -211,9 +211,9 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
           <SectionTitle icon={Sparkles} tone="indigo" className="mb-2">
             快速导入逐字稿实录
           </SectionTitle>
-          <p className="mb-4 text-xs leading-relaxed text-3">
+          <p className="mb-4 text-sm leading-relaxed text-2">
             每行一条发言，自动识别{" "}
-            <code className="rounded tint-3 px-1.5 py-0.5 font-mono text-[11px] text-indigo-200">
+            <code className="rounded tint-3 px-2 py-0.5 font-mono text-xs text-indigo-300">
               [00:01:23]
             </code>{" "}
             时间码与行首的「主持人: / 嘉宾: / 人名:」标签，并剥离前缀、标记高光观点。
@@ -226,9 +226,9 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
             placeholder={
               "[00:01:15] 主持人: 什么时候你第一次觉得 AI 真能改变电影？\n[00:01:28] 嘉宾: 其实是在 2023 年底，我一个人用生成式工具跑出了传统团队半个月的场景..."
             }
-            className="field resize-none font-mono text-[11px] leading-relaxed"
+            className="field resize-none font-mono text-sm leading-relaxed"
           />
-          <div className="mt-4 flex justify-end gap-2 border-t border-line-1 pt-4">
+          <div className="mt-4 flex justify-end gap-2.5 border-t border-line-1 pt-4">
             <button onClick={() => setShowPasteModal(false)} className="btn btn-ghost btn-md">
               取消
             </button>
@@ -259,8 +259,8 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
       ) : (
         <div className="glass-panel overflow-hidden rounded-2xl">
           {/* 工具条 */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-1 tint-1 px-5 py-3.5">
-            <div className="flex flex-wrap items-center gap-1">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-1 tint-1 px-5 py-4">
+            <div className="flex flex-wrap items-center gap-1.5">
               {FILTERS.map((f) => {
                 const active = filter === f.key;
                 return (
@@ -268,10 +268,10 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
                     key={f.key}
                     onClick={() => setFilter(f.key)}
                     className={clsx(
-                      "btn btn-sm rounded-lg",
+                      "btn btn-sm rounded-lg text-xs sm:text-[13px] px-3.5 py-1.5",
                       active
-                        ? "tint-4 text-1"
-                        : "text-3 hover:bg-surface-2 hover:text-2"
+                        ? "tint-4 text-1 font-bold"
+                        : "text-3 hover:bg-surface-2 hover:text-1"
                     )}
                   >
                     {f.label}
@@ -279,17 +279,17 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
                 );
               })}
             </div>
-            <div className="flex items-center gap-3 text-[11px] text-4">
+            <div className="flex items-center gap-3.5 text-xs text-3">
               <span className="flex items-center gap-1.5">
-                <Bot className="h-3 w-3 text-sky-400" />
-                <span className="tabular">{hostCount}</span> 主持人
+                <Bot className="h-3.5 w-3.5 text-sky-400" />
+                <span className="tabular font-bold text-1">{hostCount}</span> 主持人
               </span>
               <span className="flex items-center gap-1.5">
-                <User className="h-3 w-3 text-purple-400" />
-                <span className="tabular">{guestCount}</span> 嘉宾
+                <User className="h-3.5 w-3.5 text-purple-400" />
+                <span className="tabular font-bold text-1">{guestCount}</span> 嘉宾
               </span>
-              <span className="hidden items-center gap-1.5 sm:flex">
-                <ArrowLeftRight className="h-3 w-3" />
+              <span className="hidden items-center gap-1.5 sm:flex font-medium">
+                <ArrowLeftRight className="h-3.5 w-3.5" />
                 点击标签可纠正
               </span>
             </div>
@@ -298,7 +298,7 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
           {/* 发言流 */}
           <div className="divide-y divide-line-1">
             {visible.length === 0 ? (
-              <p className="px-5 py-12 text-center text-xs text-4">当前筛选下没有发言记录</p>
+              <p className="px-5 py-12 text-center text-sm text-3">当前筛选下没有发言记录</p>
             ) : (
               visible.map((item) => {
                 const isGuest = item.speaker === "嘉宾";
@@ -306,16 +306,16 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
                   <article
                     key={item.id}
                     className={clsx(
-                      "relative px-5 py-4 transition-colors hover:bg-surface-1",
+                      "relative px-5 py-5 sm:px-6 transition-colors hover:bg-surface-1",
                       item.isHighlight && "bg-amber-500/[0.045]"
                     )}
                   >
                     {item.isHighlight && (
-                      <span className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-amber-400 to-rose-400" />
+                      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-amber-400 to-rose-400" />
                     )}
 
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5">
                         <button
                           onClick={() => handleToggleSpeaker(item)}
                           title={`点击改为「${isGuest ? "主持人" : "嘉宾"}」`}
@@ -323,32 +323,32 @@ export default function TranscriptTab({ project, onUpdate }: Props) {
                         >
                           <Chip
                             tone={SPEAKER_TONE[item.speaker]}
-                            className="px-2 py-0.5 text-[10px]"
+                            className="px-2.5 py-0.5 text-xs font-semibold"
                           >
                             {isGuest ? (
-                              <User className="h-2.5 w-2.5" />
+                              <User className="h-3 w-3" />
                             ) : (
-                              <Bot className="h-2.5 w-2.5" />
+                              <Bot className="h-3 w-3" />
                             )}
                             {isGuest ? `嘉宾 · ${project.guestName}` : "主持人"}
-                            <ArrowLeftRight className="h-2.5 w-2.5 opacity-0 transition-opacity group-hover/speaker:opacity-70" />
+                            <ArrowLeftRight className="h-3 w-3 opacity-0 transition-opacity group-hover/speaker:opacity-70" />
                           </Chip>
                         </button>
-                        <span className="tabular flex items-center gap-1 font-mono text-[11px] text-4">
-                          <Clock className="h-3 w-3" />
+                        <span className="tabular flex items-center gap-1.5 font-mono text-xs text-3">
+                          <Clock className="h-3.5 w-3.5" />
                           {item.timecode}
                         </span>
                       </div>
 
                       {item.tag && (
-                        <Chip tone="amber" className="px-2 py-0.5 text-[10px]">
-                          <Flame className="h-2.5 w-2.5" />
+                        <Chip tone="amber" className="px-2.5 py-0.5 text-xs font-semibold">
+                          <Flame className="h-3 w-3" />
                           {item.tag}
                         </Chip>
                       )}
                     </div>
 
-                    <p className="mt-2.5 text-[13px] leading-relaxed text-2">{item.text}</p>
+                    <p className="mt-3 text-base leading-relaxed text-1">{item.text}</p>
                   </article>
                 );
               })

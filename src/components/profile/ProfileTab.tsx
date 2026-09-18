@@ -251,7 +251,7 @@ export default function ProfileTab({ project, onUpdate }: Props) {
           <SectionTitle
             icon={FileText}
             tone="indigo"
-            extra={<span className="tabular text-[11px] text-4">{project.rawMaterials.length}</span>}
+            extra={<span className="tabular text-xs text-3 font-mono font-semibold">{project.rawMaterials.length} 份</span>}
           >
             原始资料库
           </SectionTitle>
@@ -265,9 +265,9 @@ export default function ProfileTab({ project, onUpdate }: Props) {
               action={
                 <button
                   onClick={() => setShowAddMaterial(true)}
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-secondary btn-sm text-xs sm:text-sm"
                 >
-                  <Plus className="h-3.5 w-3.5" />
+                  <Plus className="h-4 w-4" />
                   录入新资料
                 </button>
               }
@@ -279,26 +279,26 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                 return (
                   <article key={mat.id} className="glass-card card-hover group rounded-xl p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <Chip tone={meta.tone} className="px-2 py-0.5 text-[10px]">
+                      <Chip tone={meta.tone} className="px-2.5 py-0.5 text-xs">
                         {meta.label}
                       </Chip>
                       <div className="flex items-center gap-1.5">
-                        <span className="tabular text-[10px] text-4">
+                        <span className="tabular text-xs text-3 font-mono">
                           {new Date(mat.addedAt).toLocaleDateString("zh-CN")}
                         </span>
                         <button
                           onClick={() => handleRemoveMaterial(mat)}
                           title="删除这份资料"
-                          className="btn btn-ghost btn-xs -mr-1 text-4 opacity-60 transition-opacity hover:bg-rose-500/10 hover:text-rose-300 group-hover:opacity-100"
+                          className="btn btn-ghost btn-xs -mr-1 text-3 opacity-60 transition-opacity hover:bg-rose-500/10 hover:text-rose-300 group-hover:opacity-100"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </div>
-                    <h4 className="mt-2.5 text-xs font-semibold leading-snug text-1">
+                    <h4 className="mt-2.5 text-sm font-bold leading-snug text-1">
                       {mat.title}
                     </h4>
-                    <p className="mt-1.5 line-clamp-3 text-[11px] leading-relaxed text-3">
+                    <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-2">
                       {mat.content}
                     </p>
                   </article>
@@ -331,34 +331,34 @@ export default function ProfileTab({ project, onUpdate }: Props) {
               {/* 人物身份卡 */}
               <section className="glass-card animate-rise overflow-hidden rounded-2xl">
                 <div className="flex flex-wrap items-start gap-4 p-6">
-                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/25 to-violet-500/10 text-lg font-semibold text-indigo-200">
+                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-indigo-500/25 bg-gradient-to-br from-indigo-500/25 to-violet-500/10 text-xl font-bold text-indigo-200">
                     {profile.identity.name?.slice(0, 1) || "?"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-lg font-semibold tracking-tight text-1">
+                    <h3 className="text-xl font-bold tracking-tight text-1">
                       {profile.identity.name}
                     </h3>
-                    <p className="mt-0.5 text-xs text-3">
+                    <p className="mt-1 text-sm text-2">
                       {profile.identity.title}
                       {profile.identity.company && (
-                        <span className="text-4"> · {profile.identity.company}</span>
+                        <span className="text-3"> · {profile.identity.company}</span>
                       )}
                     </p>
                     {profile.lastAnalyzedAt && (
-                      <p className="mt-1 text-[10px] text-4">
+                      <p className="mt-1 text-xs text-3 font-mono">
                         档案更新时间 {new Date(profile.lastAnalyzedAt).toLocaleString("zh-CN")}
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="border-t border-line-1 px-6 py-4">
-                  <p className="text-xs leading-relaxed text-2">{profile.identity.summary}</p>
+                  <p className="text-sm leading-relaxed text-1">{profile.identity.summary}</p>
                   {profile.identity.tags?.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-1.5">
+                    <div className="mt-4 flex flex-wrap gap-2">
                       {profile.identity.tags.map((tag, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 text-[11px] text-indigo-300"
+                          className="inline-flex items-center gap-1 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300"
                         >
                           <Tag className="h-3 w-3" />
                           {tag}
@@ -377,23 +377,23 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                     tone="amber"
                     className="mb-4"
                     extra={
-                      <Chip tone="amber" className="px-2 py-0.5 text-[10px]">
+                      <Chip tone="amber" className="px-2.5 py-0.5 text-xs font-semibold">
                         导演精选
                       </Chip>
                     }
                   >
                     本次采访最值得深挖的 5 个方向
                   </SectionTitle>
-                  <ol className="space-y-2.5">
+                  <ol className="space-y-3">
                     {profile.top5Directions.map((dir, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-3 rounded-xl border border-line-1 bg-surface-1 p-3.5 transition-colors hover:border-indigo-500/25 hover:bg-surface-2"
+                        className="flex items-start gap-3.5 rounded-xl border border-line-1 bg-surface-1 p-4 transition-colors hover:border-indigo-500/25 hover:bg-surface-2"
                       >
-                        <span className="tabular grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-[11px] font-bold text-indigo-300">
+                        <span className="tabular grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-indigo-500/25 bg-indigo-500/10 text-xs font-bold text-indigo-300">
                           {i + 1}
                         </span>
-                        <p className="text-xs leading-relaxed text-2">{dir}</p>
+                        <p className="text-sm leading-relaxed text-1">{dir}</p>
                       </li>
                     ))}
                   </ol>
@@ -407,10 +407,10 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                     <SectionTitle icon={AlertTriangle} tone="amber" className="mb-3.5">
                       矛盾点与内心张力
                     </SectionTitle>
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-3">
                       {profile.conflicts.map((conf, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-2">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400" />
+                        <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-1">
+                          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-amber-400" />
                           <span>{conf}</span>
                         </li>
                       ))}
@@ -423,10 +423,10 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                     <SectionTitle icon={HelpCircle} tone="cyan" className="mb-3.5">
                       资料盲区与空白
                     </SectionTitle>
-                    <ul className="space-y-2.5">
+                    <ul className="space-y-3">
                       {profile.blanks.map((blank, i) => (
-                        <li key={i} className="flex items-start gap-2.5 text-xs leading-relaxed text-2">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                        <li key={i} className="flex items-start gap-2.5 text-sm leading-relaxed text-1">
+                          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-cyan-400" />
                           <span>{blank}</span>
                         </li>
                       ))}
@@ -441,18 +441,18 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                   <SectionTitle icon={Clock} tone="violet" className="mb-5">
                     人生关键时间线与心态转折
                   </SectionTitle>
-                  <div className="relative space-y-5 border-l border-line-2 pl-6">
+                  <div className="relative space-y-6 border-l border-line-2 pl-6">
                     {profile.timeline.map((item, i) => (
                       <div key={i} className="relative">
-                        <span className="absolute -left-[27px] top-1.5 h-2.5 w-2.5 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 ring-4 ring-[color:var(--bg-base)]" />
-                        <p className="tabular text-[11px] font-semibold text-indigo-300">
+                        <span className="absolute -left-[27px] top-1.5 h-3 w-3 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 ring-4 ring-[color:var(--bg-base)]" />
+                        <p className="tabular text-xs font-bold text-indigo-300 font-mono">
                           {item.period}
                         </p>
-                        <p className="mt-1 text-xs font-medium leading-relaxed text-1">
+                        <p className="mt-1 text-sm font-semibold leading-relaxed text-1">
                           {item.event}
                         </p>
                         {item.significance && (
-                          <p className="mt-1.5 rounded-lg border border-line-1 bg-surface-1 px-3 py-2 text-[11px] italic leading-relaxed text-3">
+                          <p className="mt-2 rounded-lg border border-line-1 bg-surface-1 px-3.5 py-2 text-xs sm:text-[13px] leading-relaxed text-2">
                             {item.significance}
                           </p>
                         )}
@@ -469,13 +469,13 @@ export default function ProfileTab({ project, onUpdate }: Props) {
                     <SectionTitle icon={Award} tone="purple" className="mb-3.5">
                       代表作品
                     </SectionTitle>
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {profile.representativeWorks.map((work, i) => (
-                        <div key={i} className="inset rounded-xl p-3">
-                          <p className="text-xs font-semibold text-1">{work.title}</p>
-                          <p className="mt-1 text-[11px] leading-relaxed text-3">{work.desc}</p>
+                        <div key={i} className="inset rounded-xl p-3.5 border border-line-1">
+                          <p className="text-sm font-bold text-1">{work.title}</p>
+                          <p className="mt-1.5 text-xs sm:text-[13px] leading-relaxed text-2">{work.desc}</p>
                           {work.impact && (
-                            <p className="mt-1.5 text-[11px] text-purple-300">{work.impact}</p>
+                            <p className="mt-2 text-xs font-medium text-purple-300">{work.impact}</p>
                           )}
                         </div>
                       ))}

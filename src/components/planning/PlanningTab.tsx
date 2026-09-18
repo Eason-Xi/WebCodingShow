@@ -204,21 +204,21 @@ export default function PlanningTab({ project, onUpdate }: Props) {
       ) : (
         <>
           {/* 叙事结构总览 */}
-          <div className="glass-panel rounded-2xl p-4">
-            <div className="eyebrow mb-3 px-1">叙事结构</div>
-            <div className="no-scrollbar flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="glass-panel rounded-2xl p-5">
+            <div className="eyebrow mb-3 px-1 text-xs sm:text-[13px]">叙事结构脉络</div>
+            <div className="no-scrollbar flex items-center gap-3 overflow-x-auto pb-1">
               {project.chapters.map((chapter, i) => (
-                <div key={chapter.id} className="flex shrink-0 items-center gap-2">
-                  <div className="rounded-xl border border-line-1 bg-surface-1 px-3 py-2">
-                    <p className="tabular text-[10px] font-semibold text-indigo-300">
+                <div key={chapter.id} className="flex shrink-0 items-center gap-3">
+                  <div className="rounded-xl border border-line-1 bg-surface-1 px-3.5 py-2.5">
+                    <p className="tabular text-xs font-bold text-indigo-400 dark:text-indigo-300 font-mono">
                       CHAPTER {chapter.order}
                     </p>
-                    <p className="mt-0.5 max-w-[160px] truncate text-xs font-medium text-2">
+                    <p className="mt-1 max-w-[180px] truncate text-sm font-semibold text-1">
                       {chapter.title}
                     </p>
                   </div>
                   {i < project.chapters.length - 1 && (
-                    <span className="text-4">›</span>
+                    <span className="text-3 text-sm">›</span>
                   )}
                 </div>
               ))}
@@ -226,40 +226,40 @@ export default function PlanningTab({ project, onUpdate }: Props) {
           </div>
 
           {/* 章节卡片流 */}
-          <div className="space-y-5">
+          <div className="space-y-6">
             {project.chapters.map((chapter, chapterIdx) => (
               <section
                 key={chapter.id}
                 className={`glass-card animate-rise stagger-${(chapterIdx % 6) + 1} overflow-hidden rounded-2xl`}
               >
                 {/* 章节头 */}
-                <div className="flex flex-col gap-3 border-b border-line-1 tint-1 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3.5 border-b border-line-1 tint-1 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3.5">
-                    <span className="tabular grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/30 to-violet-500/10 text-sm font-bold text-indigo-200">
+                    <span className="tabular grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/30 to-violet-500/10 text-base font-extrabold text-indigo-200">
                       {chapter.order}
                     </span>
                     <div className="min-w-0">
-                      <h3 className="text-sm font-semibold tracking-tight text-1">
+                      <h3 className="text-base sm:text-lg font-bold tracking-tight text-1">
                         {chapter.title}
                       </h3>
-                      <p className="mt-1 flex items-start gap-1.5 text-xs leading-relaxed text-3">
-                        <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                      <p className="mt-1 flex items-start gap-2 text-sm leading-relaxed text-2">
+                        <Target className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
                         采访意图：{chapter.goal}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Chip tone="slate">
-                      <Clock className="h-3 w-3" />
+                  <div className="flex shrink-0 items-center gap-2.5">
+                    <Chip tone="slate" className="px-3 py-1 text-xs">
+                      <Clock className="h-3.5 w-3.5" />
                       预计 {chapter.estimatedMinutes || 5} 分钟
                     </Chip>
-                    <Chip tone="indigo">{chapter.questions.length} 题</Chip>
+                    <Chip tone="indigo" className="px-3 py-1 text-xs">{chapter.questions.length} 题</Chip>
                   </div>
                 </div>
 
                 {/* 问题列表 */}
-                <div className="space-y-3 p-5">
+                <div className="space-y-4 p-5">
                   {chapter.questions.map((q, qIndex) => {
                     const typeMeta = TYPE_META[q.type] ?? TYPE_META.normal;
                     const statusMeta = STATUS_META[q.status];
@@ -269,24 +269,24 @@ export default function PlanningTab({ project, onUpdate }: Props) {
                     return (
                       <article
                         key={q.id}
-                        className="rounded-xl border border-line-1 bg-surface-1 p-4 transition-colors hover:border-line-2 hover:bg-surface-2"
+                        className="rounded-xl border border-line-1 bg-surface-1 p-4 sm:p-5 transition-colors hover:border-line-2 hover:bg-surface-2"
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex min-w-0 items-start gap-3">
-                            <span className="tabular mt-0.5 shrink-0 rounded-md tint-3 px-1.5 py-0.5 text-[10px] font-bold text-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex min-w-0 items-start gap-3.5">
+                            <span className="tabular mt-0.5 shrink-0 rounded-md tint-3 px-2 py-0.5 text-xs font-bold text-3 font-mono">
                               Q{chapter.order}.{qIndex + 1}
                             </span>
-                            <p className="text-[13px] font-medium leading-relaxed text-1">
+                            <p className="text-base font-semibold leading-relaxed text-1">
                               {q.text}
                             </p>
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1.5">
-                            <Chip tone={typeMeta.tone} className="px-2 py-0.5 text-[10px]">
+                            <Chip tone={typeMeta.tone} className="px-2.5 py-0.5 text-xs">
                               {typeMeta.label}
                             </Chip>
                             {statusMeta && StatusIcon && (
-                              <Chip tone={statusMeta.tone} className="px-2 py-0.5 text-[10px]">
-                                <StatusIcon className="h-2.5 w-2.5" />
+                              <Chip tone={statusMeta.tone} className="px-2.5 py-0.5 text-xs">
+                                <StatusIcon className="h-3 w-3" />
                                 {statusMeta.label}
                               </Chip>
                             )}
@@ -295,19 +295,19 @@ export default function PlanningTab({ project, onUpdate }: Props) {
 
                         {/* 追问支架 */}
                         {q.followUps && q.followUps.length > 0 && (
-                          <div className="mt-3.5 border-t border-line-1 pt-3.5">
-                            <p className="flex items-center gap-1.5 text-[11px] font-medium text-indigo-300">
-                              <CornerDownRight className="h-3.5 w-3.5" />
+                          <div className="mt-4 border-t border-line-1 pt-3.5">
+                            <p className="flex items-center gap-1.5 text-xs sm:text-[13px] font-semibold text-indigo-400 dark:text-indigo-300">
+                              <CornerDownRight className="h-4 w-4" />
                               备选现场追问支架
-                              <span className="font-normal text-4">（嘉宾未说透时触发）</span>
+                              <span className="font-normal text-3">（嘉宾未说透时触发）</span>
                             </p>
-                            <div className="mt-2 space-y-1.5 pl-5">
+                            <div className="mt-2.5 space-y-2 pl-5">
                               {q.followUps.map((fu, fuIdx) => (
                                 <p
                                   key={fuIdx}
-                                  className="inset flex items-start gap-2 rounded-lg px-3 py-2 text-xs leading-relaxed text-2"
+                                  className="inset flex items-start gap-2.5 rounded-lg px-3.5 py-2.5 text-sm leading-relaxed text-2"
                                 >
-                                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-indigo-400" />
+                                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-400" />
                                   {fu}
                                 </p>
                               ))}
@@ -317,7 +317,7 @@ export default function PlanningTab({ project, onUpdate }: Props) {
 
                         {/* 现场笔记：可编辑，会带入提词台 */}
                         {isEditingNote ? (
-                          <div className="mt-3.5 border-t border-line-1 pt-3.5">
+                          <div className="mt-4 border-t border-line-1 pt-3.5">
                             <textarea
                               autoFocus
                               rows={2}
@@ -333,31 +333,31 @@ export default function PlanningTab({ project, onUpdate }: Props) {
                                 }
                               }}
                               placeholder="记录现场观察、嘉宾反应或需要回避的雷区…（Ctrl / ⌘ + Enter 保存）"
-                              className="field resize-none text-xs leading-relaxed"
+                              className="field resize-none text-sm leading-relaxed"
                             />
-                            <div className="mt-2 flex justify-end gap-2">
+                            <div className="mt-2.5 flex justify-end gap-2">
                               <button
                                 onClick={() => {
                                   setNoteEditingId(null);
                                   setNoteDraft("");
                                 }}
-                                className="btn btn-ghost btn-xs"
+                                className="btn btn-ghost btn-xs text-xs"
                               >
                                 取消
                               </button>
                               <button
                                 onClick={() => handleSaveNote(chapter.id, q.id)}
                                 disabled={noteSaving}
-                                className="btn btn-primary btn-xs"
+                                className="btn btn-primary btn-xs text-xs px-3.5"
                               >
                                 {noteSaving ? "保存中..." : "保存笔记"}
                               </button>
                             </div>
                           </div>
                         ) : q.userNotes ? (
-                          <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.07] px-3 py-2">
-                            <StickyNote className="mt-0.5 h-3 w-3 shrink-0 text-amber-400" />
-                            <p className="flex-1 text-[11px] leading-relaxed text-amber-200">
+                          <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/[0.07] px-3.5 py-2.5">
+                            <StickyNote className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+                            <p className="flex-1 text-sm leading-relaxed text-amber-200">
                               {q.userNotes}
                             </p>
                             <button
@@ -365,7 +365,7 @@ export default function PlanningTab({ project, onUpdate }: Props) {
                                 setNoteEditingId(q.id);
                                 setNoteDraft(q.userNotes || "");
                               }}
-                              className="btn btn-ghost btn-xs shrink-0 -mr-1 text-amber-300/70 hover:text-amber-200"
+                              className="btn btn-ghost btn-xs shrink-0 -mr-1 text-xs text-amber-300/80 hover:text-amber-200"
                             >
                               编辑
                             </button>
@@ -376,9 +376,9 @@ export default function PlanningTab({ project, onUpdate }: Props) {
                               setNoteEditingId(q.id);
                               setNoteDraft("");
                             }}
-                            className="btn btn-ghost btn-xs mt-3 -ml-2 text-4 hover:text-2"
+                            className="btn btn-ghost btn-xs mt-3.5 -ml-2 text-xs text-3 hover:text-1"
                           >
-                            <StickyNote className="h-3 w-3" />
+                            <StickyNote className="h-3.5 w-3.5" />
                             添加现场笔记
                           </button>
                         )}

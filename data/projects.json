@@ -12,7 +12,7 @@
     "focusDirection": "",
     "status": "interviewing",
     "createdAt": "2026-09-18T06:33:32.686Z",
-    "updatedAt": "2026-09-18T07:12:58.336Z",
+    "updatedAt": "2026-09-18T10:12:28.129Z",
     "rawMaterials": [],
     "profile": {
       "identity": {
@@ -142,7 +142,7 @@
             "id": "q-1-2",
             "text": "你曾说过“音乐是情感的出口，不是技巧的炫耀”。但在《浮夸》里，你用了极致甚至夸张的唱腔。这种表达方式背后，你想传递什么样的情感？",
             "type": "deep",
-            "status": "pending",
+            "status": "highlight",
             "followUps": [
               "录制《浮夸》时，你是否有过犹豫或自我怀疑？",
               "如果现在重新演绎《浮夸》，你会做哪些不同的处理？"
@@ -493,7 +493,7 @@
     "focusDirection": "从传统团队到一人工业化的心理转变与行业真相",
     "status": "completed",
     "createdAt": "2026-09-18T01:59:56.869Z",
-    "updatedAt": "2026-09-18T06:12:08.668Z",
+    "updatedAt": "2026-09-18T10:11:13.986Z",
     "rawMaterials": [
       {
         "id": "mat-1",
@@ -597,7 +597,7 @@
             "id": "q-1-1",
             "text": "在你全面投入AI电影之前，你在传统剧组里是怎样一种生存状态？",
             "type": "normal",
-            "status": "pending",
+            "status": "asked",
             "followUps": [
               "当时对传统影视的冗长流程最厌烦的是哪一点？",
               "为什么不是尝试改良，而是选择离开？"
