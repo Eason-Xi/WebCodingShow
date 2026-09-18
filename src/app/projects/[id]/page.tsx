@@ -226,18 +226,18 @@ export default function ProjectDetailPage() {
                   />
                   <defs>
                     <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#818cf8" />
-                      <stop offset="100%" stopColor="#c084fc" />
+                      <stop offset="0%" stopColor="#C9FF63" />
+                      <stop offset="100%" stopColor="#84cc16" />
                     </linearGradient>
                   </defs>
                 </svg>
-                <span className="tabular absolute inset-0 grid place-items-center text-[11px] font-semibold text-1">
+                <span className="tabular absolute inset-0 grid place-items-center text-[11px] font-bold text-1 font-mono">
                   {progress.percent}%
                 </span>
               </div>
               <div>
-                <p className="text-[11px] text-4">全流程进度</p>
-                <p className="tabular text-xs font-medium text-2">
+                <p className="text-[11px] text-4 font-mono">全流程进度</p>
+                <p className="tabular text-xs font-semibold text-2">
                   {progress.completed} / {progress.total} 阶段完成
                 </p>
               </div>
@@ -259,7 +259,7 @@ export default function ProjectDetailPage() {
         {/* 侧栏流程导航 */}
         <aside className="hidden lg:block">
           <nav className="glass-panel sticky top-24 space-y-1 rounded-2xl p-2.5">
-            <p className="eyebrow px-3 pb-2 pt-1.5">工作流</p>
+            <p className="eyebrow px-3 pb-2 pt-1.5 font-mono text-lime-600 dark:text-lime-400">02 · 工作流阶段</p>
             {STEPS.map((step) => {
               const Icon = step.icon;
               const isActive = activeTab === step.key;
@@ -270,20 +270,20 @@ export default function ProjectDetailPage() {
                   className={clsx(
                     "group relative flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all duration-200",
                     isActive
-                      ? "border-indigo-500/30 bg-indigo-500/[0.12]"
+                      ? "border-lime-500/35 bg-lime-400/[0.12] dark:border-lime-400/30 shadow-[0_2px_12px_rgba(201,255,99,0.12)]"
                       : "border-transparent hover:bg-surface-2"
                   )}
                 >
                   {isActive && (
-                    <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-gradient-to-b from-indigo-400 to-violet-400" />
+                    <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-full bg-lime-500 dark:bg-lime-400 shadow-[0_0_8px_rgba(201,255,99,0.5)]" />
                   )}
                   <span
                     className={clsx(
                       "grid h-7 w-7 shrink-0 place-items-center rounded-lg border text-[11px] font-semibold transition-colors",
                       step.done
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                        ? "border-lime-500/35 bg-lime-400/15 text-lime-700 dark:text-lime-300 font-bold"
                         : isActive
-                        ? "border-indigo-400/40 bg-indigo-500/20 text-indigo-200"
+                        ? "border-lime-500/40 bg-lime-400/20 text-lime-700 dark:text-lime-300"
                         : "border-line-2 bg-surface-2 text-4 group-hover:text-3"
                     )}
                   >
@@ -300,7 +300,7 @@ export default function ProjectDetailPage() {
                         {step.short}
                       </span>
                       {step.count !== undefined && step.count !== 0 && (
-                        <span className="tabular shrink-0 rounded-full tint-3 px-1.5 py-0.5 text-[10px] text-3">
+                        <span className="tabular shrink-0 rounded-full tint-3 px-1.5 py-0.5 text-[10px] text-3 font-mono">
                           {step.count}
                         </span>
                       )}
@@ -319,13 +319,13 @@ export default function ProjectDetailPage() {
             })}
 
             <div className="mt-2 border-t border-line-1 px-3 pb-1 pt-3">
-              <div className="mb-2 flex items-center justify-between text-[11px] text-4">
+              <div className="mb-2 flex items-center justify-between text-[11px] text-4 font-mono">
                 <span>整体进度</span>
-                <span className="tabular">{progress.percent}%</span>
+                <span className="tabular font-bold text-1">{progress.percent}%</span>
               </div>
               <ProgressBar
                 percent={progress.percent}
-                tone={progress.percent === 100 ? "emerald" : "indigo"}
+                tone="lime"
               />
             </div>
           </nav>
@@ -343,12 +343,12 @@ export default function ProjectDetailPage() {
                 className={clsx(
                   "flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs font-medium transition-colors",
                   isActive
-                    ? "border-indigo-500/35 bg-indigo-500/15 text-indigo-100"
+                    ? "border-lime-500/40 bg-lime-400/20 text-lime-700 dark:text-lime-300 font-semibold"
                     : "border-line-1 bg-surface-1 text-3"
                 )}
               >
                 {step.done ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  <Check className="h-3.5 w-3.5 text-lime-500 dark:text-lime-400" />
                 ) : (
                   <Icon className="h-3.5 w-3.5" />
                 )}

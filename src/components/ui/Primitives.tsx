@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
    ========================================================================== */
 
 export type Tone =
+  | "lime"
   | "indigo"
   | "violet"
   | "purple"
@@ -29,6 +30,13 @@ interface ToneClasses {
 }
 
 export const TONE: Record<Tone, ToneClasses> = {
+  lime: {
+    text: "text-lime-700 dark:text-lime-300",
+    bg: "bg-lime-400/15",
+    border: "border-lime-500/35 dark:border-lime-400/30",
+    tile: "bg-gradient-to-br from-lime-400/25 to-lime-500/10 border-lime-500/40 dark:border-lime-400/35",
+    dot: "bg-lime-500 dark:bg-lime-400",
+  },
   indigo: {
     text: "text-indigo-300",
     bg: "bg-indigo-500/10",
@@ -283,7 +291,7 @@ export function EmptyState({
 
 export function ProgressBar({
   percent,
-  tone = "indigo",
+  tone = "lime",
   className,
 }: {
   percent: number;
@@ -295,7 +303,9 @@ export function ProgressBar({
       <div
         className={clsx(
           "h-full rounded-full transition-[width] duration-700 ease-out",
-          tone === "emerald"
+          tone === "lime"
+            ? "bg-lime-400 dark:bg-lime-300 shadow-[0_0_10px_rgba(201,255,99,0.5)]"
+            : tone === "emerald"
             ? "bg-gradient-to-r from-emerald-500 to-teal-400"
             : tone === "pink"
             ? "bg-gradient-to-r from-pink-500 to-violet-500"
@@ -322,14 +332,16 @@ export function StageDots({
 }) {
   const dim = size === "sm" ? "h-1.5" : "h-2";
   return (
-    <div className={clsx("flex items-center gap-1", className)}>
+    <div className={clsx("flex items-center gap-1.5", className)}>
       {done.map((d, i) => (
         <span
           key={i}
           className={clsx(
             dim,
-            "flex-1 rounded-full transition-colors duration-500",
-            d ? "bg-gradient-to-r from-indigo-400 to-violet-400" : "tint-4"
+            "flex-1 rounded-full transition-all duration-500",
+            d
+              ? "bg-lime-500 dark:bg-lime-400 shadow-[0_0_8px_rgba(201,255,99,0.35)]"
+              : "bg-black/10 dark:bg-white/10"
           )}
         />
       ))}

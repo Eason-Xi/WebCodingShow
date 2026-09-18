@@ -25,16 +25,16 @@ export default function RootLayout({
           <div className="shell flex h-16 items-center justify-between gap-4">
             {/* 品牌 */}
             <Link href="/" className="group flex items-center gap-3">
-              <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-tint bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 shadow-accent transition-transform duration-300 group-hover:scale-[1.06]">
-                <Clapperboard className="h-[18px] w-[18px] text-white" />
-                <span className="tint-hi pointer-events-none absolute inset-x-0 top-0 h-px" />
+              <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-xl border border-line-2 bg-[#0b0c0f] text-lime-400 shadow-[0_0_20px_rgba(201,255,99,0.18)] transition-all duration-300 group-hover:scale-[1.06] group-hover:border-lime-400/50">
+                <Clapperboard className="h-[18px] w-[18px] text-lime-400" />
+                <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/20" />
               </span>
               <span className="flex flex-col">
                 <span className="flex items-center gap-2">
-                  <span className="text-[15px] font-semibold tracking-tight text-gradient">
+                  <span className="text-[15px] font-bold tracking-tight text-1">
                     AI 访谈导演
                   </span>
-                  <span className="rounded-full border border-indigo-500/25 bg-indigo-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-indigo-300">
+                  <span className="rounded-full border border-lime-500/35 bg-lime-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-lime-600 dark:text-lime-300 font-mono">
                     v1.0
                   </span>
                 </span>
@@ -45,24 +45,24 @@ export default function RootLayout({
             </Link>
 
             {/* 右侧操作 */}
-            <div className="flex items-center gap-2">
-              <div className="hidden items-center gap-2 rounded-full border border-line-1 bg-surface-2 px-3 py-1.5 text-[11px] text-3 md:flex">
+            <div className="flex items-center gap-2.5">
+              <div className="hidden items-center gap-2 rounded-full border border-line-1 bg-surface-2 px-3 py-1.5 text-[11px] text-3 md:flex font-mono">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 animate-ping-soft" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-lime-400 animate-ping-soft" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-lime-400" />
                 </span>
-                <span>全流程上下文已激活</span>
+                <span>DIRECTOR ENGINE ACTIVE</span>
               </div>
 
               <ThemeToggle />
 
-              <Link href="/" className="btn btn-secondary btn-sm h-9 px-3.5">
+              <Link href="/" className="btn btn-secondary btn-sm h-9 px-4">
                 <LayoutGrid className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">我的访谈</span>
               </Link>
             </div>
           </div>
-          <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/35 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-lime-400/30 to-transparent" />
         </header>
 
         <main className="flex flex-1 flex-col">{children}</main>

@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -11,30 +11,37 @@
   :root {
     color-scheme: dark;
 
-    /* ---- 画布与表面 ---- */
-    --bg-base: #06080f;
-    --surface-1: rgba(255, 255, 255, 0.028);
-    --surface-2: rgba(255, 255, 255, 0.052);
-    --surface-3: rgba(255, 255, 255, 0.08);
-    --surface-inset: rgba(4, 6, 14, 0.5);
-    --panel-from: rgba(255, 255, 255, 0.048);
-    --panel-to: rgba(255, 255, 255, 0.016);
+    /* ---- 画布与表面 (Jev Technical Editorial / Obsidian Dark) ---- */
+    --bg-base: #0b0c0f;
+    --surface-1: rgba(255, 255, 255, 0.035);
+    --surface-2: rgba(255, 255, 255, 0.065);
+    --surface-3: rgba(255, 255, 255, 0.1);
+    --surface-inset: rgba(4, 6, 9, 0.65);
+    --panel-from: rgba(18, 20, 26, 0.88);
+    --panel-to: rgba(13, 15, 20, 0.78);
 
     /* ---- 描边 ---- */
-    --line-1: rgba(148, 163, 184, 0.12);
-    --line-2: rgba(148, 163, 184, 0.22);
-    --line-3: rgba(148, 163, 184, 0.34);
+    --line-1: rgba(255, 255, 255, 0.09);
+    --line-2: rgba(255, 255, 255, 0.16);
+    --line-3: rgba(255, 255, 255, 0.28);
 
     /* ---- 文字 ---- */
-    --text-1: #f3f6fc;
-    --text-2: #c2cddd;
-    --text-3: #8d9bb2;
-    --text-4: #64718a;
+    --text-1: #f7f7f2;
+    --text-2: #c5c7cc;
+    --text-3: #8a8e96;
+    --text-4: #5c616b;
+
+    /* ---- Jev 品牌核心令牌 ---- */
+    --c-obsidian: #0b0c0f;
+    --c-paper: #f3f1e9;
+    --c-paper-card: #fbfaf5;
+    --c-paper-line: #d8d4c8;
+    --c-lime-text: #0b0c0f;
 
     /* ---- 中性叠加（浅色主题下翻转为黑色叠加） ---- */
     --tint: 255 255 255;
-    --well: rgba(0, 0, 0, 0.2);
-    --header-bg: rgba(6, 8, 15, 0.7);
+    --well: rgba(0, 0, 0, 0.28);
+    --header-bg: rgba(11, 12, 15, 0.82);
 
     /* ---- 危险操作 ---- */
     --danger-bg: rgba(239, 68, 68, 0.1);
@@ -44,20 +51,20 @@
     --danger-text-hover: #fecaca;
 
     /* ---- 阴影 ---- */
-    --shadow-1: 0 1px 2px rgba(2, 4, 10, 0.5);
-    --shadow-2: 0 10px 30px -14px rgba(2, 4, 10, 0.9);
-    --shadow-3: 0 32px 72px -32px rgba(2, 4, 10, 0.95);
-    --shadow-accent: 0 10px 30px -12px rgba(79, 70, 229, 0.55);
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 14px 35px -14px rgba(0, 0, 0, 0.85);
+    --shadow-3: 0 35px 80px -28px rgba(0, 0, 0, 0.95);
+    --shadow-accent: 0 12px 35px -8px rgba(201, 255, 99, 0.38);
 
     /* ---- 滚动条 / 表单 ---- */
     --scrollbar-thumb: rgba(148, 163, 184, 0.18);
-    --scrollbar-thumb-hover: rgba(129, 140, 248, 0.42);
-    --option-bg: #0d1220;
+    --scrollbar-thumb-hover: rgba(201, 255, 99, 0.42);
+    --option-bg: #0d1017;
 
     /* ---- 画布光晕 ---- */
-    --glow-1: rgba(79, 70, 229, 0.2);
-    --glow-2: rgba(168, 85, 247, 0.13);
-    --glow-3: rgba(14, 165, 233, 0.09);
+    --glow-1: rgba(201, 255, 99, 0.14);
+    --glow-2: rgba(157, 140, 255, 0.12);
+    --glow-3: rgba(56, 189, 248, 0.06);
 
     --ease-out: cubic-bezier(0.22, 0.68, 0, 1);
 
@@ -90,6 +97,14 @@
     --c-indigo-600: 79 70 229;
     --c-indigo-700: 67 56 202;
     --c-indigo-800: 55 48 163;
+    --c-lime-100: 247 254 231;
+    --c-lime-200: 236 252 203;
+    --c-lime-300: 217 249 157;
+    --c-lime-400: 201 255 99;
+    --c-lime-500: 163 230 53;
+    --c-lime-600: 101 163 13;
+    --c-lime-700: 77 124 15;
+    --c-lime-800: 63 98 18;
     --c-pink-200: 251 207 232;
     --c-pink-300: 249 168 212;
     --c-pink-400: 244 114 182;
@@ -130,30 +145,36 @@
     --c-violet-800: 91 33 182;
   }
 
-  /* ================= 浅色主题 ================= */
+  /* ================= 浅色主题 (Jev Editorial Warm Paper) ================= */
   [data-theme="light"] {
     color-scheme: light;
 
-    --bg-base: #f4f6fb;
-    --surface-1: rgba(15, 23, 42, 0.022);
-    --surface-2: rgba(15, 23, 42, 0.045);
-    --surface-3: rgba(15, 23, 42, 0.07);
-    --surface-inset: rgba(15, 23, 42, 0.035);
-    --panel-from: rgba(255, 255, 255, 0.92);
-    --panel-to: rgba(255, 255, 255, 0.72);
+    --bg-base: #f3f1e9;
+    --surface-1: rgba(18, 20, 23, 0.032);
+    --surface-2: rgba(18, 20, 23, 0.065);
+    --surface-3: rgba(18, 20, 23, 0.098);
+    --surface-inset: rgba(18, 20, 23, 0.035);
+    --panel-from: #fbfaf5;
+    --panel-to: #f5f3ec;
 
-    --line-1: rgba(15, 23, 42, 0.1);
-    --line-2: rgba(15, 23, 42, 0.16);
-    --line-3: rgba(15, 23, 42, 0.28);
+    --line-1: rgba(18, 20, 23, 0.08);
+    --line-2: #d8d4c8;
+    --line-3: #c0baa8;
 
-    --text-1: #0f172a;
-    --text-2: #334155;
-    --text-3: #4d5c73;
-    --text-4: #5f6f87;
+    --text-1: #121417;
+    --text-2: #2d3139;
+    --text-3: #5c626d;
+    --text-4: #858a94;
 
-    --tint: 15 23 42;
-    --well: rgba(15, 23, 42, 0.045);
-    --header-bg: rgba(255, 255, 255, 0.78);
+    --c-obsidian: #0b0c0f;
+    --c-paper: #f3f1e9;
+    --c-paper-card: #fbfaf5;
+    --c-paper-line: #d8d4c8;
+    --c-lime-text: #121417;
+
+    --tint: 18 20 23;
+    --well: rgba(18, 20, 23, 0.035);
+    --header-bg: rgba(243, 241, 233, 0.88);
 
     --danger-bg: rgba(220, 38, 38, 0.08);
     --danger-bg-hover: rgba(220, 38, 38, 0.15);
@@ -161,20 +182,20 @@
     --danger-text: #b91c1c;
     --danger-text-hover: #991b1b;
 
-    --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
-    --shadow-2: 0 10px 30px -16px rgba(15, 23, 42, 0.18);
-    --shadow-3: 0 28px 64px -30px rgba(15, 23, 42, 0.24);
-    --shadow-accent: 0 10px 26px -12px rgba(79, 70, 229, 0.45);
+    --shadow-1: 0 1px 3px rgba(18, 20, 23, 0.04);
+    --shadow-2: 0 10px 30px -15px rgba(18, 20, 23, 0.08);
+    --shadow-3: 0 24px 48px -20px rgba(18, 20, 23, 0.12);
+    --shadow-accent: 0 10px 28px -10px rgba(101, 163, 13, 0.28);
 
-    --scrollbar-thumb: rgba(15, 23, 42, 0.16);
-    --scrollbar-thumb-hover: rgba(79, 70, 229, 0.4);
-    --option-bg: #ffffff;
+    --scrollbar-thumb: rgba(18, 20, 23, 0.16);
+    --scrollbar-thumb-hover: rgba(101, 163, 13, 0.45);
+    --option-bg: #fbfaf5;
 
-    --glow-1: rgba(79, 70, 229, 0.08);
-    --glow-2: rgba(168, 85, 247, 0.06);
+    --glow-1: rgba(201, 255, 99, 0.22);
+    --glow-2: rgba(157, 140, 255, 0.14);
     --glow-3: rgba(14, 165, 233, 0.05);
 
-    /* 文字用色阶调深，保证浅底上的对比度；背景/边框色阶保持中间调 */
+    /* 语义色深浅调校 */
     --c-amber-100: 180 83 9;
     --c-amber-200: 180 83 9;
     --c-amber-300: 180 83 9;
@@ -187,6 +208,14 @@
     --c-indigo-200: 67 56 202;
     --c-indigo-300: 67 56 202;
     --c-indigo-400: 79 70 229;
+    --c-lime-100: 45 70 12;
+    --c-lime-200: 45 70 12;
+    --c-lime-300: 63 98 18;
+    --c-lime-400: 77 124 15;
+    --c-lime-500: 101 163 13;
+    --c-lime-600: 101 163 13;
+    --c-lime-700: 77 124 15;
+    --c-lime-800: 45 70 12;
     --c-pink-200: 190 24 93;
     --c-pink-300: 190 24 93;
     --c-pink-400: 219 39 119;
@@ -301,33 +330,36 @@
     border: 1px solid var(--line-1);
   }
 
-  /* --- 按钮体系 --- */
+  /* --- 按钮体系 (Jev Aesthetic) --- */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium
       transition-all duration-200 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-45;
     transition-timing-function: var(--ease-out);
   }
   .btn-xs {
-    @apply h-7 px-2.5 text-[11px];
+    @apply h-7 px-3 text-[11px];
   }
   .btn-sm {
-    @apply h-8 px-3 text-xs;
+    @apply h-8 px-3.5 text-xs;
   }
   .btn-md {
-    @apply h-10 px-4 text-sm;
+    @apply h-10 px-5 text-sm;
   }
   .btn-lg {
-    @apply h-11 px-5 text-sm;
+    @apply h-11 px-6 text-sm;
   }
 
+  /* Jev 标志性高光青柠主按钮（全主题统一保持极光青柠高辨识度） */
   .btn-primary {
-    @apply text-white;
-    background-image: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #7c3aed 100%);
-    box-shadow: var(--shadow-accent), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    color: #0b0c0f !important;
+    background-color: #c9ff63 !important;
+    box-shadow: 0 4px 18px rgba(201, 255, 99, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    font-weight: 600;
   }
   .btn-primary:hover {
-    background-image: linear-gradient(135deg, #7c83f7 0%, #5b52ea 55%, #8b46f0 100%);
-    box-shadow: 0 14px 36px -12px rgba(99, 102, 241, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    background-color: #d8ff7a !important;
+    box-shadow: 0 8px 26px rgba(201, 255, 99, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
   }
 
   .btn-secondary {
@@ -339,6 +371,83 @@
     color: var(--text-1);
     background: var(--surface-3);
     border-color: var(--line-3);
+  }
+
+  /* --- Jev 风格：Director Console 终端视窗 --- */
+  .hero-console {
+    background: #0d1017 !important;
+    color: #f7f7f2 !important;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 20px;
+    box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+  }
+
+  .hero-console .console-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .hero-console .console-result {
+    background: rgba(201, 255, 99, 0.06);
+    border: 1px solid rgba(201, 255, 99, 0.22);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .hero-console pre,
+  .hero-console code,
+  .hero-console .code-line {
+    font-family: var(--font-mono, monospace);
+  }
+
+  .hero-console .console-dim {
+    color: #64748b !important;
+  }
+  .hero-console .console-key {
+    color: #cbd5e1 !important;
+  }
+  .hero-console .console-val {
+    color: #f7f7f2 !important;
+  }
+  .hero-console .console-lime {
+    color: #c9ff63 !important;
+  }
+  .hero-console .console-amber {
+    color: #fde047 !important;
+  }
+  .hero-console .console-violet {
+    color: #c084fc !important;
+  }
+  .hero-console .console-emerald {
+    color: #86efac !important;
+  }
+
+  /* --- Jev 风格：Stat Strip 扁平数据横带 --- */
+  .stat-strip {
+    background: var(--panel-from);
+    border: 1px solid var(--line-2);
+    border-radius: 20px;
+    box-shadow: var(--shadow-2);
+  }
+
+  /* --- Technical Grid 科技网格纹理 --- */
+  .technical-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  }
+  [data-theme="light"] .technical-grid {
+    background-image: 
+      linear-gradient(to right, rgba(18, 20, 23, 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(18, 20, 23, 0.035) 1px, transparent 1px);
   }
 
   .btn-ghost {

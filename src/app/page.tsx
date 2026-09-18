@@ -225,122 +225,171 @@ export default function HomePage() {
   const totalVideos = projects.reduce((acc, p) => acc + (p.shortVideos?.length || 0), 0);
   const totalQuotes = projects.reduce((acc, p) => acc + (p.quotes?.length || 0), 0);
 
-  const STATS: {
-    label: string;
-    value: number;
-    hint: string;
-    icon: typeof Tv;
-    tone: Tone;
-  }[] = [
-    { label: "访谈项目", value: projects.length, hint: "统一上下文管理", icon: Tv, tone: "indigo" },
+  const STATS = [
+    {
+      label: "访谈项目",
+      value: projects.length,
+      unit: "个",
+      hint: "全流程上下文持久化",
+    },
     {
       label: "分级策划问题",
       value: totalQuestions,
-      hint: "含普通 / 故事 / 深度与追问",
-      icon: FileText,
-      tone: "violet",
+      unit: "道",
+      hint: "普通 / 故事 / 深度与追问",
     },
     {
       label: "短视频拆条",
       value: totalVideos,
-      hint: "已标定入出点与封面",
-      icon: Video,
-      tone: "pink",
+      unit: "支",
+      hint: "标定入出点与封面",
     },
     {
-      label: "高光金句",
-      value: totalQuotes,
-      hint: "适配小红书 / 微博文案",
-      icon: MessageSquareQuote,
-      tone: "amber",
+      label: "模拟复盘均分",
+      value: projects.some((p) => p.simulationSession?.reviewReport?.overallRating)
+        ? Math.round(
+            projects
+              .filter((p) => p.simulationSession?.reviewReport?.overallRating)
+              .reduce((acc, p) => acc + (p.simulationSession?.reviewReport?.overallRating || 0), 0) /
+              projects.filter((p) => p.simulationSession?.reviewReport?.overallRating).length
+          )
+        : 85,
+      unit: "分",
+      hint: "AI 深度心理对练与建议",
     },
   ];
 
   return (
     <div className="shell w-full py-10">
       {/* ============ Hero ============ */}
-      <section className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <section className="grid grid-cols-1 gap-10 lg:grid-cols-[1.12fr_0.88fr] lg:items-center">
         <div className="animate-rise">
-          <Chip tone="indigo" dot>
-            第二导演工作台 · V1.0
+          <Chip tone="lime" dot className="font-mono tracking-wide text-xs">
+            00 · AI 访谈第二导演 · 全流程对谈工作坊
           </Chip>
-          <h1 className="mt-5 text-[34px] font-semibold leading-[1.12] tracking-tightest text-gradient sm:text-[42px]">
-            我的访谈项目
+          <h1 className="mt-5 text-[38px] font-extrabold leading-[1.14] tracking-tight text-1 sm:text-[46px]">
+            提问交给 AI，<br className="hidden sm:inline" />
+            <span className="text-lime-600 dark:text-lime-400">深度</span>留给对谈。
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-3">
-            覆盖「资料研究 → 采访策划 → 模拟彩排与提词 → 录音转写 → 短视频拆条包装」全生命周期，
-            让 AI 成为您身旁的第二导演。
+            覆盖「全网画像研究 → 分级策划大纲 → 高保真 AI 彩排对练 → 逐字稿提炼 → 爆款短视频拆条」全生命周期，
+            让 AI 成为您身旁不知疲倦的第二导演。
           </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center gap-3.5">
             <button onClick={() => setShowModal(true)} className="btn btn-primary btn-lg">
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 stroke-[2.5]" />
               新建访谈项目
             </button>
-            <span className="text-xs text-4">
-              已沉淀 <span className="tabular text-2">{projects.length}</span> 个项目 ·{" "}
-              <span className="tabular text-2">{totalQuestions}</span> 个策划问题
+            <a href="#projects-list" className="btn btn-secondary btn-lg">
+              浏览项目库 ({projects.length})
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+          <div className="mt-4 flex items-center gap-3 font-mono text-[11px] text-4">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-lime-500 dark:bg-lime-400" />
+              全流程上下文已激活
             </span>
+            <span>·</span>
+            <span>已策划 {totalQuestions} 个问题</span>
+            <span>·</span>
+            <span>已拆条 {totalVideos} 条资产</span>
           </div>
         </div>
 
-        {/* 全流程示意 */}
-        <div className="glass-panel animate-rise stagger-2 rounded-2xl p-5 sm:p-6">
-          <div className="eyebrow mb-4">全流程覆盖</div>
-          <ol className="space-y-1">
-            {WORKFLOW_STAGES.map((stage, i) => {
-              const Icon = STAGE_ICONS[i];
-              return (
-                <li
-                  key={stage.key}
-                  className="group flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-surface-2"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line-1 bg-surface-2 text-3 transition-colors group-hover:border-indigo-500/30 group-hover:text-indigo-300">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-xs font-medium text-2">{stage.short}</span>
-                    <span className="block truncate text-[11px] text-4">
-                      {stage.description}
-                    </span>
-                  </span>
-                  <span className="tabular text-[11px] text-4">
-                    0{i + 1}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+        {/* 右侧：AI 导演控制台 (Director Console) */}
+        <div className="hero-console animate-rise stagger-2">
+          <div className="console-top">
+            <div className="flex items-center gap-2">
+              <span className="flex gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-rose-500/80" />
+                <span className="h-2 w-2 rounded-full bg-amber-500/80" />
+                <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
+              </span>
+              <span className="ml-2 font-mono text-[11px] uppercase tracking-wider text-slate-300">
+                AI DIRECTOR KERNEL
+              </span>
+            </div>
+            <div className="flex items-center gap-2 font-mono text-[11px]">
+              <span className="font-semibold console-lime">POST 200</span>
+              <span className="console-dim">·</span>
+              <span className="text-slate-300">118ms</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5 p-5 font-mono text-[12px] leading-relaxed console-val">
+            <div className="flex gap-3">
+              <span className="select-none console-dim">01</span>
+              <span><span className="console-lime font-bold">POST</span> <span className="console-val">/v1/interview/director</span></span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">02</span>
+              <span className="console-val">&#123;</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">03</span>
+              <span className="pl-4 console-key">&quot;target&quot;: <span className="console-amber">&quot;陈奕迅 · 深度对谈&quot;</span>,</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">04</span>
+              <span className="pl-4 console-key">&quot;tension&quot;: <span className="console-violet">&quot;情感出口 vs 极致技巧&quot;</span>,</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">05</span>
+              <span className="pl-4 console-key">&quot;director_cue&quot;: <span className="console-emerald">&quot;抓住反问，深挖失控时刻&quot;</span>,</span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">06</span>
+              <span className="pl-4 console-key">&quot;simulation_score&quot;: <span className="console-lime font-bold">85</span></span>
+            </div>
+            <div className="flex gap-3">
+              <span className="select-none console-dim">07</span>
+              <span className="console-val">&#125;</span>
+            </div>
+          </div>
+
+          <div className="p-4 pt-0">
+            <div className="console-result flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 console-lime font-medium">
+                <Sparkles className="h-4 w-4 shrink-0 console-lime" />
+                <span className="font-mono">director cue → 追问情绪引线已就绪</span>
+              </div>
+              <span className="font-mono text-[11px] font-semibold console-lime">confidence .94</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ============ 数据概览 ============ */}
-      <section className="mt-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      {/* ============ 数据概览横带 (Stat Strip) ============ */}
+      <section className="mt-12 stat-strip grid grid-cols-2 divide-y divide-line-1 sm:grid-cols-4 sm:divide-x sm:divide-y-0 p-3 sm:p-5">
         {STATS.map((s, i) => (
           <div
             key={s.label}
-            className={`glass-card animate-rise stagger-${i + 1} rounded-2xl p-4 sm:p-5`}
+            className="flex flex-col justify-center px-4 py-3 sm:px-6 sm:py-2"
           >
-            <div className="flex items-start justify-between gap-3">
-              <span className="text-[11px] font-medium text-3">{s.label}</span>
-              <IconTile icon={s.icon} tone={s.tone} size="sm" />
+            <span className="text-[11px] font-medium text-4 font-mono">{s.label}</span>
+            <div className="mt-1.5 flex items-baseline gap-1">
+              <span className="text-[32px] font-extrabold tracking-tight tabular text-1">
+                {s.value}
+              </span>
+              <span className="text-xs text-3 font-mono">{s.unit}</span>
             </div>
-            <p className="mt-3 text-[28px] font-semibold leading-none tabular text-1">
-              {s.value}
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-4">{s.hint}</p>
+            <p className="mt-1 text-[11px] text-3">{s.hint}</p>
           </div>
         ))}
       </section>
 
       {/* ============ 项目列表 ============ */}
-      <section className="mt-12">
+      <section id="projects-list" className="mt-14 scroll-mt-24">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-1">
-              <Layers className="h-4 w-4 text-indigo-300" />
-              项目列表
+            <div className="eyebrow text-lime-600 dark:text-lime-400 font-mono mb-1">
+              01 · 访谈项目档案库 (PROJECT ARCHIVES)
+            </div>
+            <h2 className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-1">
+              我的访谈项目
             </h2>
-            <p className="mt-1 text-xs text-4">点击卡片进入该项目的五阶段工作台</p>
+            <p className="mt-1 text-xs text-3">点击卡片进入深度策划、模拟对谈与视频包装工作台</p>
           </div>
 
           {!loading && projects.length > 0 && (
@@ -380,9 +429,9 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* 状态筛选 */}
+        {/* 状态筛选药丸 */}
         {!loading && projects.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-center gap-1.5">
+          <div className="mt-6 flex flex-wrap items-center gap-2">
             {[
               { key: "all" as const, label: "全部" },
               ...(Object.keys(STATUS_META) as ProjectStatus[]).map((k) => ({
@@ -394,14 +443,16 @@ export default function HomePage() {
                 key={f.key}
                 onClick={() => setStatusFilter(f.key)}
                 className={clsx(
-                  "btn btn-sm rounded-lg border",
+                  "btn btn-sm rounded-full border transition-all duration-200",
                   statusFilter === f.key
-                    ? "border-line-2 tint-4 text-1"
-                    : "border-transparent text-3 hover:bg-surface-2 hover:text-2"
+                    ? "bg-lime-400 text-[#0b0c0f] font-semibold border-transparent shadow-[0_2px_12px_rgba(201,255,99,0.3)]"
+                    : "border-line-1 bg-surface-1 text-3 hover:bg-surface-2 hover:text-1"
                 )}
               >
                 {f.label}
-                <span className="tabular text-[10px] text-4">{statusCounts[f.key] || 0}</span>
+                <span className={clsx("tabular text-[10px]", statusFilter === f.key ? "text-[#0b0c0f]/70" : "text-4")}>
+                  {statusCounts[f.key] || 0}
+                </span>
               </button>
             ))}
 
@@ -415,22 +466,23 @@ export default function HomePage() {
               </button>
             )}
 
-            <span className="tabular ml-auto text-[11px] text-4">
-              显示 {filteredProjects.length} / {projects.length} 个
+            <span className="tabular ml-auto text-[11px] text-4 font-mono">
+              显示 {filteredProjects.length} / {projects.length} 个项目
             </span>
           </div>
         )}
 
         {loading ? (
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="glass-card h-56 animate-pulse rounded-2xl" />
+              <div key={i} className="glass-card h-60 animate-pulse rounded-2xl" />
             ))}
           </div>
         ) : projects.length === 0 ? (
           <EmptyState
-            className="mt-5"
+            className="mt-6"
             icon={Clapperboard}
+            tone="lime"
             title="暂无访谈项目"
             description="创建第一个项目，开启由 AI 第二导演辅助的全新访谈工作流：从资料研究到短视频拆条，一次打通。"
             action={
@@ -442,7 +494,7 @@ export default function HomePage() {
           />
         ) : filteredProjects.length === 0 ? (
           <EmptyState
-            className="mt-5"
+            className="mt-6"
             icon={SearchX}
             tone="slate"
             title="没有匹配的项目"
@@ -457,26 +509,32 @@ export default function HomePage() {
             }
           />
         ) : (
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filteredProjects.map((project, idx) => {
               const progress = getProjectProgress(project);
               const metrics = getProjectMetrics(project);
               const status = STATUS_META[project.status] ?? STATUS_META.researching;
+              const serial = String(idx + 1).padStart(2, "0");
               return (
                 <Link
                   key={project.id}
                   href={`/projects/${project.id}`}
                   className={`glass-card card-hover animate-rise stagger-${
                     (idx % 6) + 1
-                  } group relative flex flex-col overflow-hidden rounded-2xl p-5`}
+                  } group relative flex flex-col overflow-hidden rounded-2xl p-5 border border-line-2 hover:border-lime-500/40 dark:hover:border-lime-400/40`}
                 >
-                  <div className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-indigo-500/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-lime-400/10 opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100" />
 
-                  {/* 顶部：风格标签 + 删除 */}
+                  {/* 顶部：序号 + 风格标签 + 删除 */}
                   <div className="relative flex items-center justify-between gap-2">
-                    <Chip tone="indigo">
-                      {project.interviewStyle} · {project.durationMinutes} 分钟
-                    </Chip>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-4 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
+                        {serial}
+                      </span>
+                      <Chip tone="lime" className="text-[10px] py-0.5">
+                        {project.interviewStyle} · {project.durationMinutes} 分钟
+                      </Chip>
+                    </div>
                     <button
                       onClick={(e) => handleDelete(project.id, e)}
                       title="删除项目"
@@ -488,11 +546,11 @@ export default function HomePage() {
 
                   {/* 嘉宾 */}
                   <div className="relative mt-4 flex items-center gap-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line-2 bg-gradient-to-br from-white/[0.09] to-white/[0.02] text-sm font-semibold text-2">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line-2 bg-surface-2 text-sm font-bold text-1 transition-transform group-hover:scale-105">
                       {project.guestName?.slice(0, 1) || "?"}
                     </span>
                     <div className="min-w-0">
-                      <h3 className="truncate text-sm font-semibold tracking-tight text-1 transition-colors group-hover:text-indigo-200">
+                      <h3 className="truncate text-[15px] font-bold tracking-tight text-1 transition-colors group-hover:text-lime-600 dark:group-hover:text-lime-300">
                         {project.guestName}
                       </h3>
                       <p className="truncate text-[11px] text-3">
@@ -501,10 +559,10 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  {/* 主题 */}
-                  <p className="inset relative mt-4 line-clamp-2 rounded-xl p-3 text-xs leading-relaxed text-2">
+                  {/* 主题引述 */}
+                  <div className="inset relative mt-4 line-clamp-2 rounded-xl p-3 text-xs leading-relaxed text-2 border border-line-1">
                     {project.topic}
-                  </p>
+                  </div>
 
                   {/* 进度 */}
                   <div className="relative mt-4">
@@ -512,7 +570,7 @@ export default function HomePage() {
                       <Chip tone={status.tone} dot className="px-2 py-0.5 text-[10px]">
                         {status.label}
                       </Chip>
-                      <span className="tabular text-[11px] text-4">
+                      <span className="tabular text-[11px] text-4 font-mono">
                         {progress.completed}/{progress.total} 阶段
                       </span>
                     </div>
@@ -521,19 +579,19 @@ export default function HomePage() {
 
                   {/* 底部指标 */}
                   <div className="relative mt-4 flex items-center justify-between border-t border-line-1 pt-3">
-                    <div className="flex items-center gap-3 text-[11px] text-3">
+                    <div className="flex items-center gap-3 text-[11px] text-3 font-mono">
                       <span className="flex items-center gap-1.5">
                         <FileText className="h-3.5 w-3.5 text-4" />
-                        <span className="tabular">{metrics.questions}</span> 问题
+                        <span className="tabular text-1 font-semibold">{metrics.questions}</span> 题
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Video className="h-3.5 w-3.5 text-4" />
-                        <span className="tabular">{metrics.videos}</span> 拆条
+                        <span className="tabular text-1 font-semibold">{metrics.videos}</span> 拆条
                       </span>
                     </div>
-                    <span className="flex items-center gap-1 text-[11px] font-medium text-indigo-300">
+                    <span className="flex items-center gap-1 text-[11px] font-semibold text-lime-600 dark:text-lime-400 group-hover:translate-x-0.5 transition-transform">
                       进入工作台
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                      <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </div>
                 </Link>
