@@ -42,8 +42,12 @@ export function ProfileForm() {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 0 毫秒即时预览
+    const objectUrl = URL.createObjectURL(file)
+    setAvatar(objectUrl)
     setUploading(true)
     setError('')
+
     try {
       const formData = new FormData()
       formData.append('file', file)

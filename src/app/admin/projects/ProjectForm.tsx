@@ -61,6 +61,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [completedAt, setCompletedAt] = useState(initialData?.completedAt || '')
   const [description, setDescription] = useState(initialData?.description || '')
 
+  const [localPreview, setLocalPreview] = useState('')
+  const [imageError, setImageError] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [fetchingMeta, setFetchingMeta] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -87,7 +89,10 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
       if (data.title && !title) setTitle(data.title)
       if (data.summary && !summary) setSummary(data.summary)
-      if (data.cover && !cover) setCover(data.cover)
+      if (data.cover && !cover) {
+        setCover(data.cover)
+        setImageError(false)
+      }
     } catch (err: any) {
       setError(err.message || '解析失败，请手动填写')
     } finally {
@@ -118,13 +123,18 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       .finally(() => setLoadingCategories(false))
   }, [])
 
-  // 上传图片处理
+  // 上传图片处理：立即本地显示预览，同时后台上传
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // 0 毫秒本地即时预览
+    const objectUrl = URL.createObjectURL(file)
+    setLocalPreview(objectUrl)
+    setImageError(false)
     setUploading(true)
     setError('')
+
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -419,16 +429,50 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             </div>
 
             {/* 实时封面预览 */}
-            {cover && (
-              <div className="mt-3 relative w-48 aspect-[16/10] rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950">
-                <img src={cover} alt="封面预览" className="w-full h-full object-cover" />
+            {(localPreview || cover) && (
+              <div className="mt-3 relative w-64 aspect-[16/10] rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950 shadow-sm">
+                {!imageError ? (
+                  <img
+                    src={localPreview || cover}
+                    alt="封面预览"
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-red-50/50 dark:bg-red-950/20 text-red-500">
+                    <AlertCircle className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-medium">图片加载失败</span>
+                    <span className="text-[10px] text-neutral-400 mt-0.5">请检查 URL 是否有效或包含防盗链</span>
+                  </div>
+                )}
+
+                {/* 上传中遮罩 */}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white">
+                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin mb-1.5" />
+                    <span className="text-xs font-medium">正在保存图片...</span>
+                  </div>
+                )}
+
+                {/* 清除按钮 */}
                 <button
                   type="button"
-                  onClick={() => setCover('')}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-md p-1 text-[10px]"
+                  onClick={() => {
+                    setCover('')
+                    setLocalPreview('')
+                    setImageError(false)
+                  }}
+                  className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-lg px-2 py-1 text-xs backdrop-blur-xs cursor-pointer transition-colors"
                 >
-                  清除
+                  清除封面
                 </button>
+
+                {/* 状态徽章 */}
+                {!uploading && !imageError && (
+                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs text-white px-2 py-0.5 rounded text-[10px] font-mono">
+                    ✓ 预览正常
+                  </div>
+                )}
               </div>
             )}
           </div>

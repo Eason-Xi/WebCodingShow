@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     await writeFile(filePath, buffer)
 
-    return NextResponse.json({ url: `/uploads/${fileName}` })
+    return NextResponse.json({ url: `/api/uploads/${fileName}` })
   } catch (error) {
     console.error('上传图片失败:', error)
     return NextResponse.json({ error: '上传图片失败' }, { status: 500 })
