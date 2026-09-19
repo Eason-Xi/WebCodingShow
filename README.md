@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web Coding 作品聚合平台 (Portfolio & Projects Navigator)
 
-## Getting Started
+> 严格遵循 《WebCoding作品聚合平台_PRD_V1.0.docx》 规范打造。
+> 专注于个人面试展示、Web Coding 成果资产化沉淀与零前端代码维护的项目聚合系统。
 
-First, run the development server:
+---
 
+## 🌟 核心特色与设计原则
+
+- **零代码维护闭环**：以后每开发完一个网页项目，只需在管理后台录入一条记录（名称、线上 URL、简介、分类），前台自动即刻呈现，彻底告别频繁改动前端静态代码。
+- **面向 500–1000+ 规模设计**：
+  - 拒绝单一无序瀑布流，采用**“首页精选聚焦（6-12 个代表作）+ 完整作品库（多维筛选与分页）”**分层展现。
+  - 支持即时防抖关键词搜索（名称、简介、技术标签）、分类胶囊筛选与多维度排序（精选优先/排序权重/时间）。
+- **极简工程自洽**：
+  - 前台作品展示与后台管理系统统一集成在 Next.js 15 App Router 单体工程内。
+  - 基于 Prisma ORM + 本地 SQLite，克隆即可零配置运行；Prisma Schema 完美兼容 PostgreSQL，未来可一键平滑接入 Supabase / Neon / Vercel Postgres。
+  - Linear / Vercel 现代极简视觉风格，细致的毛玻璃边框微光、呼吸感知悬浮微动效。
+
+---
+
+## 🛠️ 技术栈
+
+| 模块 | 技术选型 | 说明 |
+| :--- | :--- | :--- |
+| **全栈框架** | Next.js 15 (App Router) + TypeScript | 高性能服务端渲染 (SSR) 与极速路由 |
+| **样式与动效** | Tailwind CSS v4 + 精选现代组件体系 | 现代极简主义设计与响应式适配 |
+| **持久层** | Prisma ORM 6.4 + SQLite / PostgreSQL | 数据库实体解耦，支持未来高并发扩展 |
+| **权限认证** | Web Crypto HMAC Token + HttpOnly Cookie | 独立管理员极简安全鉴权中间件 |
+| **图标与视觉** | Lucide React + 纯矢量 SVG | 保证跨浏览器极佳渲染质量 |
+
+---
+
+## 🚀 快速启动
+
+### 1. 安装依赖与同步数据库
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma db push
+npx tsx prisma/seed.ts   # 注入 6 大基础分类与高质量演示项目数据
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 启动本地开发
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 生产环境构建与启动
+```bash
+npm run build
+npm run start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+服务默认运行在：`http://localhost:3000`
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🔐 管理后台凭证与路由
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **前台首页**：`http://localhost:3000`
+- **全部作品库**：`http://localhost:3000/projects`
+- **后台控制台**：`http://localhost:3000/admin`
+- **后台登录页**：`http://localhost:3000/admin/login`
+- **默认管理员密码**：`admin123`（可在根目录 `.env` 中的 `ADMIN_PASSWORD` 随心修改）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📁 页面与功能结构
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/
+│   ├── page.tsx                     # 前台首页 (Hero + 精选作品 + 分类矩阵)
+│   ├── projects/                    # 全部作品库 (搜索 + 分类 Tab + 排序 + 分页)
+│   ├── admin/
+│   │   ├── login/                   # 管理员登录
+│   │   ├── page.tsx                 # 控制台 Dashboard 指标看板
+│   │   ├── projects/                # 项目总表 (快速上下架/精选/删除)
+│   │   │   ├── new/                 # 录入新作品 (完整 PRD 表单)
+│   │   │   └── [id]/edit/           # 编辑作品
+│   │   ├── categories/              # 分类管理 (增删改排)
+│   │   └── profile/                 # 个人名片与社交外链设置
+│   └── api/                         # 完整的 RESTful 数据接口与鉴权中间件
+├── components/                      # Navbar, Footer, ProjectCard, Hero, Icons 等
+└── lib/
+    ├── auth.ts                      # 安全 Session 校验与签发
+    └── prisma.ts                    # Prisma 客户端连接单例
+```
