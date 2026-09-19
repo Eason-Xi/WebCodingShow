@@ -51,14 +51,22 @@ export function Navbar() {
 
           <div className="w-px h-4 bg-neutral-200 dark:bg-neutral-800 mx-1 sm:mx-2" />
 
-          {/* 后台入口 */}
+          {/* 录入新作品 显眼入口 */}
+          <Link
+            href="/admin/projects/new"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 hover:opacity-90 transition-all shadow-xs shrink-0"
+          >
+            <span className="text-base leading-none font-bold">+</span>
+            <span>录入新作品</span>
+          </Link>
+
+          {/* 后台总览入口 */}
           <Link
             href="/admin"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-            title="管理控制台"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            title="进入后台仪表盘"
           >
             <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">后台管理</span>
           </Link>
         </nav>
       </div>

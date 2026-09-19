@@ -62,9 +62,38 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [description, setDescription] = useState(initialData?.description || '')
 
   const [uploading, setUploading] = useState(false)
+  const [fetchingMeta, setFetchingMeta] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  // 智能解析 URL 信息
+  const handleFetchMeta = async () => {
+    if (!url.trim() || !/^https?:\/\/.+/i.test(url.trim())) {
+      setError('请先输入有效的 http:// 或 https:// 线上 URL')
+      return
+    }
+
+    setFetchingMeta(true)
+    setError('')
+    try {
+      const res = await fetch('/api/fetch-meta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '解析失败')
+
+      if (data.title && !title) setTitle(data.title)
+      if (data.summary && !summary) setSummary(data.summary)
+      if (data.cover && !cover) setCover(data.cover)
+    } catch (err: any) {
+      setError(err.message || '解析失败，请手动填写')
+    } finally {
+      setFetchingMeta(false)
+    }
+  }
 
   // 处理初始 tags
   useEffect(() => {
@@ -254,9 +283,20 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
           {/* 线上跳转 URL */}
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
-              线上 URL（核心体验地址） <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                线上 URL（核心体验地址） <span className="text-red-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={handleFetchMeta}
+                disabled={fetchingMeta}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-3 h-3" />
+                <span>{fetchingMeta ? '正在智能解析网页...' : '🪄 智能提取网页标题与简介'}</span>
+              </button>
+            </div>
             <div className="relative">
               <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
               <input

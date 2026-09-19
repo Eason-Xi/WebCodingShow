@@ -90,9 +90,18 @@ export function LoginForm() {
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-neutral-400">
-            默认初始密码为 <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-600 dark:text-neutral-300 font-mono">admin123</code>（可在 .env 中修改）
-          </p>
+          <div className="mt-2 flex items-center justify-between text-[11px] text-neutral-400">
+            <span>
+              默认密码: <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-700 dark:text-neutral-300 font-mono">admin123</code>
+            </span>
+            <button
+              type="button"
+              onClick={() => setPassword('admin123')}
+              className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+            >
+              一键填入
+            </button>
+          </div>
         </div>
 
         <button
