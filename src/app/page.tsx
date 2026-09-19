@@ -52,105 +52,111 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50/50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
 
       <main className="flex-1">
-        {/* 1. Hero 区域 */}
+        {/* 1. Hero */}
         <Hero profile={safeProfile} totalCount={totalPublishedCount} />
 
-        {/* 2. 精选项目展示区 */}
-        <section id="featured" className="max-w-6xl mx-auto px-4 sm:px-6 py-12 scroll-mt-20">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        {/* 2. 精选作品 */}
+        <section id="featured" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-14 sm:px-8">
+          <div className="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-amber-600 dark:text-amber-400 mb-1.5">
-                <Sparkles className="w-4 h-4" />
+              <div className="mb-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-amber-600">
+                <Sparkles className="h-3.5 w-3.5" strokeWidth={2.3} />
                 <span>Selected Works</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+              <h2 className="text-[24px] font-semibold text-ink sm:text-[28px]">
                 精选代表作品
               </h2>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+              <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
                 最具代表性的全栈工程与交互体验，点击“在线体验”直达真实项目。
               </p>
             </div>
 
             <Link
               href="/projects"
-              className="inline-flex items-center gap-1 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors group"
+              className="group inline-flex shrink-0 items-center gap-1.5 text-[13.5px] font-medium text-ink-2 transition-colors duration-200 hover:text-ink"
             >
-              <span>查看全部 ({totalPublishedCount})</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <span className="tabular">查看全部 ({totalPublishedCount})</span>
+              <ArrowRight
+                className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                strokeWidth={2.2}
+              />
             </Link>
           </div>
 
           {featuredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
               {featuredProjects.map((project) => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 border border-dashed border-neutral-300 dark:border-neutral-800 rounded-2xl">
-              <p className="text-neutral-500 text-sm">暂无精选项目，请在后台将项目设为“精选”。</p>
+            <div className="rounded-card border border-dashed border-line-strong py-16 text-center">
+              <p className="text-[13.5px] text-ink-3">暂无精选项目，请在后台将项目设为“精选”。</p>
             </div>
           )}
         </section>
 
-        {/* 3. 分类矩阵入口 */}
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 border-t border-neutral-200/80 dark:border-neutral-800/80">
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase text-blue-600 dark:text-blue-400 mb-1.5">
-              <Layers className="w-4 h-4" />
-              <span>Project Matrix</span>
+        {/* 3. 分类矩阵 */}
+        <section className="border-t border-line">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+            <div className="mb-9">
+              <div className="mb-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-3">
+                <Layers className="h-3.5 w-3.5" strokeWidth={2.3} />
+                <span>Project Matrix</span>
+              </div>
+              <h2 className="text-[24px] font-semibold text-ink">按技术领域与形态分类</h2>
+              <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
+                快速筛选感兴趣的专业垂直方向。
+              </p>
             </div>
-            <h2 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              按技术领域与形态分类
-            </h2>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              快速筛选感兴趣的专业垂直方向。
-            </p>
-          </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/projects?categoryId=${cat.id}`}
-                className="group flex flex-col justify-between p-4 rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div>
-                  <h4 className="font-medium text-sm text-neutral-900 dark:text-neutral-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {cat.name}
-                  </h4>
-                  <span className="text-xs text-neutral-400 dark:text-neutral-500 mt-1 block">
-                    {cat._count.projects} 个项目
-                  </span>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-all group-hover:translate-x-0.5" />
-                </div>
-              </Link>
-            ))}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/projects?categoryId=${cat.id}`}
+                  className="card-hover group flex flex-col justify-between rounded-card border border-line bg-surface p-4 shadow-soft hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card"
+                >
+                  <div>
+                    <h4 className="text-[14px] font-semibold text-ink">{cat.name}</h4>
+                    <span className="tabular mt-1.5 block text-[12.5px] text-ink-3">
+                      {cat._count.projects} 个项目
+                    </span>
+                  </div>
+                  <ArrowRight
+                    className="mt-5 h-3.5 w-3.5 self-end text-ink-4 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-ink"
+                    strokeWidth={2.2}
+                  />
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* 4. 底部引流探索卡片 */}
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-          <div className="relative rounded-3xl overflow-hidden p-8 sm:p-12 bg-neutral-900 text-white dark:bg-neutral-900 dark:border dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
-            <div className="max-w-xl text-center sm:text-left">
-              <h3 className="text-2xl sm:text-3xl font-bold tracking-tight">
+        {/* 4. 引流卡片 */}
+        <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+          <div className="relative flex flex-col items-center justify-between gap-7 overflow-hidden rounded-panel border border-[#26262d] bg-[#1b1b21] p-8 shadow-panel sm:flex-row sm:p-11 dark:border-line-strong dark:bg-[#151519]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.06] blur-3xl"
+            />
+            <div className="relative max-w-xl text-center sm:text-left">
+              <h3 className="text-[22px] font-semibold text-white sm:text-[26px]">
                 想要检索更丰富的项目细节？
               </h3>
-              <p className="text-neutral-400 text-sm sm:text-base mt-2">
+              <p className="mt-2.5 text-[13.5px] leading-[1.75] text-white/60 sm:text-[14.5px]">
                 进入完整项目作品库，支持毫秒级关键词检索、分类筛选与年份追溯，轻松浏览 500–1000+ 项目。
               </p>
             </div>
             <Link
               href="/projects"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white text-neutral-950 hover:bg-neutral-100 font-medium text-sm transition-all shadow-md active:scale-95 shrink-0"
+              className="relative inline-flex shrink-0 items-center gap-2 rounded-btn bg-white px-5 py-2.5 text-[13.5px] font-medium text-[#17171c] shadow-card transition-all duration-200 hover:bg-white/90 active:scale-[0.98]"
             >
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className="h-4 w-4" strokeWidth={2.2} />
               <span>进入完整作品库</span>
             </Link>
           </div>

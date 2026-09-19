@@ -6,6 +6,10 @@ import { ProjectsClient } from './ProjectsClient'
 
 export const revalidate = 0
 
+export const metadata = {
+  title: '完整作品库',
+}
+
 export default async function ProjectsPage() {
   const profile = await prisma.profile.findUnique({ where: { id: 'default' } })
 
@@ -17,12 +21,12 @@ export default async function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50/50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+    <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
         <Suspense
           fallback={
-            <div className="max-w-6xl mx-auto px-4 py-20 text-center text-sm text-neutral-400">
+            <div className="mx-auto max-w-6xl px-5 py-24 text-center text-[13.5px] text-ink-3 sm:px-8">
               加载项目库中...
             </div>
           }

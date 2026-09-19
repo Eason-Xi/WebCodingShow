@@ -47,57 +47,67 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-xl">
-      <div className="text-center mb-8">
-        <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 flex items-center justify-center mx-auto mb-4 shadow-sm">
-          <ShieldCheck className="w-6 h-6" />
+    <div className="w-full max-w-[400px] rounded-panel border border-line bg-surface p-8 shadow-panel">
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-[14px] bg-brand text-brand-ink shadow-soft">
+          <ShieldCheck className="h-[22px] w-[22px]" strokeWidth={2} />
         </div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          管理员登录
-        </h1>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+        <h1 className="text-[21px] font-semibold text-ink">管理员登录</h1>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">
           管理 WebCoding 平台作品、分类与展示配置
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="mb-6 flex items-center gap-2.5 rounded-btn border border-red-200 bg-red-50 p-3.5 text-[12.5px] text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-400">
+          <AlertCircle className="h-4 w-4 shrink-0" strokeWidth={2.2} />
           <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleLogin} className="space-y-5">
         <div>
-          <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
+          <label
+            htmlFor="admin-password"
+            className="mb-2 block text-[12.5px] font-medium text-ink-2"
+          >
             管理员访问密码
           </label>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Lock
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-4"
+              strokeWidth={2}
+            />
             <input
+              id="admin-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="请输入管理员密码..."
-              className="w-full pl-10 pr-10 py-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all"
+              className="w-full rounded-btn border border-line-strong bg-subtle py-3 pl-10 pr-11 text-[13.5px] text-ink transition-colors duration-200 placeholder:text-ink-4 focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               autoFocus
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+              aria-label={showPassword ? '隐藏密码' : '显示密码'}
+              className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-chip text-ink-4 transition-colors duration-200 hover:bg-muted hover:text-ink-2"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <div className="mt-2 flex items-center justify-between text-[11px] text-neutral-400">
+
+          <div className="mt-2.5 flex items-center justify-between text-[11.5px] text-ink-4">
             <span>
-              默认密码: <code className="bg-neutral-100 dark:bg-neutral-800 px-1.5 py-0.5 rounded text-neutral-700 dark:text-neutral-300 font-mono">admin123</code>
+              默认密码:{' '}
+              <code className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[11px] text-ink-2">
+                admin123
+              </code>
             </span>
             <button
               type="button"
               onClick={() => setPassword('admin123')}
-              className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              className="font-medium text-ink-3 transition-colors duration-200 hover:text-ink"
             >
               一键填入
             </button>
@@ -107,23 +117,23 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:opacity-90 active:scale-98 transition-all disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-btn bg-brand px-4 py-3 text-[13.5px] font-medium text-brand-ink shadow-card transition-all duration-200 hover:bg-brand-hover active:scale-[0.99] disabled:opacity-50"
         >
           {loading ? (
             <span>验证中...</span>
           ) : (
             <>
               <span>立即登入管理后台</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
             </>
           )}
         </button>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800/80 text-center">
+      <div className="mt-7 border-t border-line pt-6 text-center">
         <Link
           href="/"
-          className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+          className="text-[12.5px] text-ink-3 transition-colors duration-200 hover:text-ink"
         >
           ← 返回作品集前台首页
         </Link>

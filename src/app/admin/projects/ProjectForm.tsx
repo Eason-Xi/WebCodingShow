@@ -226,15 +226,15 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/admin/projects"
-            className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-btn border border-line text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+            <h1 className="text-2xl font-bold text-ink">
               {isEdit ? '编辑项目作品' : '录入新 Web 作品'}
             </h1>
-            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+            <p className="text-xs text-ink-3 mt-0.5">
               录入后前台将自动显示卡片并支持一键在新标签页体验
             </p>
           </div>
@@ -246,10 +246,10 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           <button
             type="button"
             onClick={() => setFeatured(!featured)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-all ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-btn text-xs font-medium cursor-pointer transition-all ${
               featured
-                ? 'bg-amber-500 text-white shadow-xs'
-                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200'
+                ? 'bg-amber-500 text-white shadow-soft'
+                : 'bg-subtle text-ink-2 hover:bg-muted'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               if (form) form.requestSubmit()
             }}
             disabled={submitting}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-xs sm:text-sm font-semibold shadow-soft hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{submitting ? '保存中...' : isEdit ? '更新项目' : '立即发布作品'}</span>
@@ -273,14 +273,14 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400">
+        <div className="mb-6 p-4 rounded-card bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
+        <div className="mb-6 p-4 rounded-card bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>项目保存成功！正在跳转项目列表...</span>
         </div>
@@ -288,14 +288,14 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 基础信息卡片 */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs space-y-5">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-3">
+        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+          <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             必填核心参数
           </h2>
 
           {/* 项目名称 */}
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               项目名称 <span className="text-red-500">*</span>
             </label>
             <input
@@ -303,7 +303,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="例如：AI Interview Studio / Shader Flow"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               required
             />
           </div>
@@ -311,38 +311,38 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           {/* 线上跳转 URL */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+              <label className="block text-xs font-medium text-ink-2">
                 线上 URL（核心体验地址） <span className="text-red-500">*</span>
               </label>
               <button
                 type="button"
                 onClick={handleFetchMeta}
                 disabled={fetchingMeta}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-2 hover:underline cursor-pointer disabled:opacity-50"
               >
                 <Sparkles className="w-3 h-3" />
                 <span>{fetchingMeta ? '正在智能解析网页...' : '🪄 智能提取网页标题与简介'}</span>
               </button>
             </div>
             <div className="relative">
-              <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+              <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
               <input
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://demo.example.com 或任意可访问的 Web 链接"
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono text-xs"
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
                 required
               />
             </div>
-            <p className="mt-1 text-[11px] text-neutral-400">
+            <p className="mt-1 text-[11px] text-ink-3">
               访客点击卡片“在线体验”时将通过安全新标签页打开该地址。
             </p>
           </div>
 
           {/* 一句话简介 */}
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               一句话简介（30–60 字） <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -350,7 +350,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="简明扼要概括作品的定位、核心亮点或解决的痛点..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white resize-none"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 resize-none"
               required
             />
           </div>
@@ -358,14 +358,14 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           {/* 分类与状态 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 所属分类 <span className="text-red-500">*</span>
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 disabled={loadingCategories}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
                 required
               >
                 {categories.map((c) => (
@@ -377,13 +377,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 发布状态 <span className="text-red-500">*</span>
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               >
                 <option value="published">已发布（前台即刻可见）</option>
                 <option value="draft">草稿（仅后台可见）</option>
@@ -393,13 +393,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 封面与展示效果 */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs space-y-5">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-3">
+        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+          <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             封面视觉与呈现
           </h2>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               封面图片 URL 或本地上传
             </label>
             <div className="flex gap-2">
@@ -408,7 +408,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 value={cover}
                 onChange={(e) => setCover(e.target.value)}
                 placeholder="输入外部图片 URL (如 Unsplash/CDN) 或点击右侧本地上传..."
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="flex-1 px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               />
               <input
                 type="file"
@@ -421,7 +421,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="px-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-xs font-medium text-neutral-700 dark:text-neutral-300 flex items-center gap-1.5 cursor-pointer shrink-0"
+                className="px-4 py-2.5 rounded-btn border border-line hover:bg-subtle text-xs font-medium text-ink-2 flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>{uploading ? '上传中...' : '上传本地截图'}</span>
@@ -430,7 +430,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
             {/* 实时封面预览 */}
             {(localPreview || cover) && (
-              <div className="mt-3 relative w-64 aspect-[16/10] rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950 shadow-sm">
+              <div className="mt-3 relative w-64 aspect-[16/10] rounded-btn overflow-hidden border border-line-strong bg-subtle shadow-soft">
                 {!imageError ? (
                   <img
                     src={localPreview || cover}
@@ -442,7 +442,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                   <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-red-50/50 dark:bg-red-950/20 text-red-500">
                     <AlertCircle className="w-6 h-6 mb-1" />
                     <span className="text-xs font-medium">图片加载失败</span>
-                    <span className="text-[10px] text-neutral-400 mt-0.5">请检查 URL 是否有效或包含防盗链</span>
+                    <span className="text-[10px] text-ink-3 mt-0.5">请检查 URL 是否有效或包含防盗链</span>
                   </div>
                 )}
 
@@ -479,15 +479,15 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 标签、排序与补充信息 */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs space-y-5">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-3">
+        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+          <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             标签与扩展字段
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 技术标签 */}
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 技术/能力标签（以逗号或空格分隔）
               </label>
               <input
@@ -495,13 +495,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="例如：React, Three.js, AI, Canvas"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               />
             </div>
 
             {/* 完成年月 */}
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 完成年月（用于时间排序/展示）
               </label>
               <input
@@ -509,7 +509,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 value={completedAt}
                 onChange={(e) => setCompletedAt(e.target.value)}
                 placeholder="例如：2026-09"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono"
               />
             </div>
           </div>
@@ -517,20 +517,20 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* 排序权重 */}
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 排序权重（数值越大越靠前，默认 0）
               </label>
               <input
                 type="number"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(parseInt(e.target.value, 10) || 0)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono"
               />
             </div>
 
             {/* 源码链接 */}
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 源码 GitHub URL（可选）
               </label>
               <input
@@ -538,14 +538,14 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 value={sourceUrl}
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="https://github.com/username/repo"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white font-mono text-xs"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
               />
             </div>
           </div>
 
           {/* 详情说明 */}
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               深度技术说明 / 难点与成果（选填）
             </label>
             <textarea
@@ -553,16 +553,16 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="记录开发过程中的架构设计、攻克的技术挑战或核心收益..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
         </div>
 
         {/* 底部保存提交栏 */}
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-neutral-200 dark:border-neutral-800">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-line">
           <Link
             href="/admin/projects"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-center"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-btn border border-line-strong text-sm font-medium text-ink-2 hover:bg-subtle transition-colors text-center"
           >
             ← 取消返回列表
           </Link>
@@ -570,7 +570,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold shadow-lg hover:shadow-xl active:scale-98 transition-all cursor-pointer disabled:opacity-50 min-w-[200px]"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-sm font-bold shadow-card hover:shadow-lift active:scale-98 transition-all cursor-pointer disabled:opacity-50 min-w-[200px]"
           >
             <Save className="w-4 h-4" />
             <span>{submitting ? '正在保存发布...' : isEdit ? '保存更新项目' : '立即发布新作品 🚀'}</span>

@@ -36,18 +36,18 @@ export function AdminSidebar() {
   }
 
   return (
-    <aside className="w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col shrink-0 min-h-screen">
+    <aside className="w-64 bg-surface border-r border-line flex flex-col shrink-0 min-h-screen">
       {/* 顶部 Brand */}
-      <div className="h-16 px-6 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+      <div className="h-16 px-6 border-b border-line flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-neutral-900 dark:bg-white flex items-center justify-center text-white dark:text-neutral-900">
-            <Code2 className="w-4 h-4" />
+          <div className="grid h-8 w-8 place-items-center rounded-[10px] bg-brand text-brand-ink">
+            <Code2 className="h-4 w-4" strokeWidth={2.2} />
           </div>
           <div>
-            <span className="font-semibold text-sm text-neutral-900 dark:text-white">
+            <span className="block text-[13.5px] font-semibold leading-none text-ink">
               WebCoding
             </span>
-            <span className="block text-[10px] text-neutral-400 font-mono">
+            <span className="mt-1 block text-[10px] font-medium uppercase leading-none tracking-[0.11em] text-ink-3">
               Admin Console
             </span>
           </div>
@@ -55,7 +55,7 @@ export function AdminSidebar() {
         <Link
           href="/"
           target="_blank"
-          className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="p-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
           title="在新标签页预览前台站"
         >
           <ExternalLink className="w-3.5 h-3.5" />
@@ -75,10 +75,10 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              className={`flex items-center gap-3 rounded-btn px-3 py-2.5 text-[13.5px] font-medium transition-colors duration-200 ${
                 isActive
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  ? 'bg-brand text-brand-ink shadow-soft'
+                  : 'text-ink-2 hover:text-ink hover:bg-subtle'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -89,17 +89,17 @@ export function AdminSidebar() {
       </nav>
 
       {/* 底部退出与管理员信息 */}
-      <div className="p-4 border-t border-neutral-200 dark:border-neutral-800">
+      <div className="p-4 border-t border-line">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+            <span className="text-xs font-medium text-ink-2">
               管理员已登录
             </span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-xs text-ink-3 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer"
             title="退出登录"
           >
             <LogOut className="w-3.5 h-3.5" />

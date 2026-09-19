@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { ProjectCard, ProjectCardData } from '@/components/ProjectCard'
-import { Search, SlidersHorizontal, Sparkles, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
+import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 
 interface Category {
   id: string
@@ -15,7 +15,6 @@ interface Category {
 }
 
 export function ProjectsClient() {
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
@@ -28,7 +27,6 @@ export function ProjectsClient() {
   const [total, setTotal] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
-  const [isPending, startTransition] = useTransition()
 
   // 1. 加载分类列表
   useEffect(() => {
@@ -85,24 +83,34 @@ export function ProjectsClient() {
     setPage(1)
   }
 
+  const pillClass = (active: boolean) =>
+    `shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-medium transition-colors duration-200 ${
+      active
+        ? 'bg-brand text-brand-ink shadow-soft'
+        : 'bg-subtle text-ink-2 hover:bg-muted hover:text-ink'
+    }`
+
+  const fieldClass =
+    'rounded-btn border border-line bg-surface text-[13.5px] text-ink transition-colors duration-200 focus:border-line-strong focus:outline-none focus-visible:outline-none focus:ring-2 focus:ring-ink/10'
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-      {/* 头部标题区 */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
-          完整作品库
-        </h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+    <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+      {/* 标题 */}
+      <div className="mb-9">
+        <h1 className="text-[26px] font-semibold text-ink sm:text-[30px]">完整作品库</h1>
+        <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
           汇集所有 Web 编程、AI 工具、实验原型与生产作品，支持多维快速定位与直接体验。
         </p>
       </div>
 
-      {/* 搜索与工具栏 */}
-      <div className="flex flex-col gap-4 mb-8">
-        {/* 顶部搜索输入框与排序 */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+      {/* 工具栏 */}
+      <div className="mb-9 flex flex-col gap-4">
+        <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Search
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3"
+              strokeWidth={2}
+            />
             <input
               type="text"
               value={search}
@@ -111,50 +119,45 @@ export function ProjectsClient() {
                 setPage(1)
               }}
               placeholder="搜索项目名称、简介描述或技术标签（如 React, AI, Three.js）..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white transition-all shadow-xs"
+              className={`${fieldClass} w-full py-2.5 pl-10 pr-16 placeholder:text-ink-4`}
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[12px] font-medium text-ink-3 transition-colors duration-200 hover:text-ink"
               >
                 清除
               </button>
             )}
           </div>
 
-          {/* 排序器 */}
-          <div className="flex items-center gap-2 shrink-0">
-            <ArrowUpDown className="w-4 h-4 text-neutral-400 hidden sm:block" />
+          <div className="flex shrink-0 items-center gap-2">
+            <ArrowUpDown className="hidden h-4 w-4 text-ink-3 sm:block" strokeWidth={2} />
             <select
               value={sort}
               onChange={(e) => {
                 setSort(e.target.value)
                 setPage(1)
               }}
-              className="px-3 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-sm text-neutral-800 dark:text-neutral-200 focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className={`${fieldClass} w-full px-3 py-2.5 sm:w-auto`}
             >
-              <option value="featured">✨ 精选优先</option>
-              <option value="order">📌 排序权重</option>
-              <option value="newest">🕒 最新完成</option>
-              <option value="oldest">🕰️ 最早完成</option>
-              <option value="title">🔤 字母顺序 (A-Z)</option>
+              <option value="featured">精选优先</option>
+              <option value="order">排序权重</option>
+              <option value="newest">最新完成</option>
+              <option value="oldest">最早完成</option>
+              <option value="title">字母顺序 (A-Z)</option>
             </select>
           </div>
         </div>
 
-        {/* 分类过滤器胶囊按钮组 */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {/* 分类胶囊 */}
+        <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-1">
           <button
             onClick={() => {
               setSelectedCategory('all')
               setPage(1)
             }}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-              selectedCategory === 'all'
-                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-            }`}
+            className={pillClass(selectedCategory === 'all')}
           >
             全部作品
           </button>
@@ -165,96 +168,93 @@ export function ProjectsClient() {
                 setSelectedCategory(cat.id)
                 setPage(1)
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-xs'
-                  : 'bg-neutral-100 dark:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
-              }`}
+              className={pillClass(selectedCategory === cat.id)}
             >
               {cat.name}
             </button>
           ))}
         </div>
 
-        {/* 数量统计与重置 */}
-        <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 px-1">
+        {/* 统计 */}
+        <div className="flex items-center justify-between px-0.5 text-[12.5px] text-ink-3">
           <span>
-            检索到 <strong className="text-neutral-900 dark:text-neutral-100 font-semibold">{total}</strong> 个项目
-            {search && `（匹配关键词：“${search}”）`}
+            检索到{' '}
+            <strong className="tabular font-semibold text-ink">{total}</strong> 个项目
+            {search && <span className="text-ink-3">（匹配关键词：“{search}”）</span>}
           </span>
           {(search || selectedCategory !== 'all') && (
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+              className="inline-flex items-center gap-1 font-medium text-ink-2 transition-colors duration-200 hover:text-ink"
             >
-              <RefreshCw className="w-3 h-3" />
+              <RefreshCw className="h-3 w-3" strokeWidth={2.2} />
               <span>重置条件</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* 项目卡片列表 / 骨架屏 / 空状态 */}
+      {/* 列表 / 骨架 / 空状态 */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 space-y-4 animate-pulse"
+              className="space-y-4 rounded-card border border-line bg-surface p-5"
             >
-              <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-800 rounded-xl" />
-              <div className="h-5 bg-neutral-200 dark:bg-neutral-800 rounded-md w-3/4" />
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md w-full" />
-              <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded-md w-2/3" />
-              <div className="h-9 bg-neutral-200 dark:bg-neutral-800 rounded-xl mt-4" />
+              <div className="aspect-[16/10] animate-pulse rounded-[10px] bg-subtle" />
+              <div className="h-4 w-3/4 animate-pulse rounded bg-subtle" />
+              <div className="h-3.5 w-full animate-pulse rounded bg-subtle" />
+              <div className="h-3.5 w-2/3 animate-pulse rounded bg-subtle" />
+              <div className="mt-4 h-9 animate-pulse rounded-btn bg-subtle" />
             </div>
           ))}
         </div>
       ) : projects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-20 rounded-2xl border border-dashed border-neutral-200 dark:border-neutral-800 bg-white/50 dark:bg-neutral-900/50">
-          <SlidersHorizontal className="w-10 h-10 mx-auto text-neutral-400 mb-3" />
-          <h3 className="text-base font-medium text-neutral-800 dark:text-neutral-200">
-            没有找到匹配的项目
-          </h3>
-          <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+        <div className="rounded-card border border-dashed border-line-strong py-20 text-center">
+          <SlidersHorizontal className="mx-auto mb-3.5 h-8 w-8 text-ink-4" strokeWidth={1.6} />
+          <h3 className="text-[15px] font-semibold text-ink">没有找到匹配的项目</h3>
+          <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-ink-3">
             尝试更换搜索关键词，或切换不同的分类标签查看更多作品。
           </p>
           <button
             onClick={handleReset}
-            className="mt-4 px-4 py-2 text-xs font-medium rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
+            className="mt-5 rounded-btn bg-brand px-4 py-2 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
           >
             清除所有筛选条件
           </button>
         </div>
       )}
 
-      {/* 分页控制栏 */}
+      {/* 分页 */}
       {totalPages > 1 && (
-        <div className="mt-12 flex items-center justify-center gap-2">
+        <div className="mt-14 flex items-center justify-center gap-2">
           <button
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white disabled:opacity-40 disabled:pointer-events-none transition-colors"
+            aria-label="上一页"
+            className="grid h-9 w-9 place-items-center rounded-btn border border-line text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="h-4 w-4" strokeWidth={2.2} />
           </button>
 
-          <span className="px-4 text-xs font-mono text-neutral-600 dark:text-neutral-400">
+          <span className="tabular px-4 text-[12.5px] font-medium text-ink-2">
             第 {page} / {totalPages} 页
           </span>
 
           <button
             disabled={page >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="p-2 rounded-xl border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white disabled:opacity-40 disabled:pointer-events-none transition-colors"
+            aria-label="下一页"
+            className="grid h-9 w-9 place-items-center rounded-btn border border-line text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink disabled:pointer-events-none disabled:opacity-40"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="h-4 w-4" strokeWidth={2.2} />
           </button>
         </div>
       )}

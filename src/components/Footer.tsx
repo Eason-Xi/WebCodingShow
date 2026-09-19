@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { Mail, ExternalLink } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { GithubIcon, TwitterIcon } from './Icons'
 
 interface FooterProps {
@@ -15,27 +14,28 @@ export function Footer({ profile }: FooterProps) {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-neutral-200 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-neutral-950/40 py-12 mt-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400 font-medium">
+    <footer className="mt-20 border-t border-line py-12">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-5 sm:flex-row sm:px-8">
+        <div className="text-center sm:text-left">
+          <p className="text-[13.5px] font-medium text-ink-2">
             © {currentYear} {profile?.name || 'Web Developer'}. 保留所有权利。
           </p>
-          <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-            专注构建有美感与实用价值的现代 Web & AI 作品。
+          <p className="mt-1.5 text-[12.5px] text-ink-3">
+            专注构建有美感与实用价值的现代 Web &amp; AI 作品。
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
           {profile?.githubUrl && (
             <a
               href={profile.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               title="GitHub"
+              aria-label="GitHub"
+              className="grid h-9 w-9 place-items-center rounded-btn text-ink-3 transition-colors duration-200 hover:bg-subtle hover:text-ink"
             >
-              <GithubIcon className="w-4 h-4" />
+              <GithubIcon className="h-[17px] w-[17px]" />
             </a>
           )}
           {profile?.xUrl && (
@@ -43,19 +43,21 @@ export function Footer({ profile }: FooterProps) {
               href={profile.xUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               title="Twitter / X"
+              aria-label="Twitter / X"
+              className="grid h-9 w-9 place-items-center rounded-btn text-ink-3 transition-colors duration-200 hover:bg-subtle hover:text-ink"
             >
-              <TwitterIcon className="w-4 h-4" />
+              <TwitterIcon className="h-[17px] w-[17px]" />
             </a>
           )}
           {profile?.email && (
             <a
               href={`mailto:${profile.email}`}
-              className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
               title="Email"
+              aria-label="Email"
+              className="grid h-9 w-9 place-items-center rounded-btn text-ink-3 transition-colors duration-200 hover:bg-subtle hover:text-ink"
             >
-              <Mail className="w-4 h-4" />
+              <Mail className="h-[17px] w-[17px]" strokeWidth={1.9} />
             </a>
           )}
         </div>

@@ -129,59 +129,59 @@ export function CategoriesManager() {
   return (
     <div className="p-6 sm:p-10 max-w-4xl w-full">
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-ink">
           分类管理
         </h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+        <p className="text-sm text-ink-3 mt-1">
           管理前台作品聚合矩阵中的分类导航、别名与排序权重。
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+        <div className="mb-6 p-3.5 rounded-btn bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* 新增分类框 */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs mb-8">
-        <h2 className="text-sm font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-2">
+      <div className="p-6 rounded-card bg-surface border border-line shadow-soft mb-8">
+        <h2 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
           <Plus className="w-4 h-4" />
           <span>添加新分类</span>
         </h2>
 
         <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
           <div className="sm:col-span-1">
-            <label className="block text-xs text-neutral-500 mb-1">分类名 *</label>
+            <label className="block text-xs text-ink-3 mb-1">分类名 *</label>
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="例如：3D 渲染"
-              className="w-full px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3 py-2 rounded-btn border border-line-strong bg-subtle text-xs focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               required
             />
           </div>
 
           <div className="sm:col-span-1">
-            <label className="block text-xs text-neutral-500 mb-1">Slug 别名 (可选)</label>
+            <label className="block text-xs text-ink-3 mb-1">Slug 别名 (可选)</label>
             <input
               type="text"
               value={newSlug}
               onChange={(e) => setNewSlug(e.target.value)}
               placeholder="如：3d-render"
-              className="w-full px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3 py-2 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
 
           <div className="sm:col-span-1">
-            <label className="block text-xs text-neutral-500 mb-1">排序权重</label>
+            <label className="block text-xs text-ink-3 mb-1">排序权重</label>
             <input
               type="number"
               value={newOrder}
               onChange={(e) => setNewOrder(parseInt(e.target.value, 10) || 0)}
-              className="w-full px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3 py-2 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
 
@@ -189,7 +189,7 @@ export function CategoriesManager() {
             <button
               type="submit"
               disabled={creating}
-              className="w-full py-2 px-4 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-medium hover:opacity-90 transition-all cursor-pointer h-9 flex items-center justify-center gap-1"
+              className="w-full py-2 px-4 rounded-btn bg-brand text-brand-ink text-xs font-medium hover:opacity-90 transition-all cursor-pointer h-9 flex items-center justify-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{creating ? '添加中...' : '确认添加'}</span>
@@ -199,10 +199,10 @@ export function CategoriesManager() {
       </div>
 
       {/* 分类列表 */}
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden shadow-2xs">
+      <div className="rounded-card border border-line bg-surface overflow-hidden shadow-soft">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-950/50 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+            <tr className="border-b border-line bg-subtle text-[12px] font-medium text-ink-3">
               <th className="py-3 px-6">分类名</th>
               <th className="py-3 px-4">Slug</th>
               <th className="py-3 px-4">关联项目</th>
@@ -210,10 +210,10 @@ export function CategoriesManager() {
               <th className="py-3 px-6 text-right">操作</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800 text-xs">
+          <tbody className="divide-y divide-line text-xs">
             {loading ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-neutral-400">
+                <td colSpan={5} className="py-8 text-center text-ink-3">
                   加载分类中...
                 </td>
               </tr>
@@ -221,41 +221,41 @@ export function CategoriesManager() {
               const isEditing = editingId === cat.id
 
               return (
-                <tr key={cat.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/30">
-                  <td className="py-3.5 px-6 font-medium text-neutral-900 dark:text-white">
+                <tr key={cat.id} className="hover:bg-subtle">
+                  <td className="py-3.5 px-6 font-medium text-ink">
                     {isEditing ? (
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-xs"
+                        className="px-2 py-1 rounded border border-line-strong bg-surface text-xs"
                       />
                     ) : (
                       cat.name
                     )}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-neutral-500">
+                  <td className="py-3.5 px-4 font-mono text-ink-3">
                     {isEditing ? (
                       <input
                         type="text"
                         value={editSlug}
                         onChange={(e) => setEditSlug(e.target.value)}
-                        className="px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-xs font-mono"
+                        className="px-2 py-1 rounded border border-line-strong bg-surface text-xs font-mono"
                       />
                     ) : (
                       cat.slug
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-neutral-600 dark:text-neutral-400">
+                  <td className="py-3.5 px-4 text-ink-2">
                     {cat._count?.projects ?? 0} 个
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-neutral-600 dark:text-neutral-400">
+                  <td className="py-3.5 px-4 font-mono text-ink-2">
                     {isEditing ? (
                       <input
                         type="number"
                         value={editOrder}
                         onChange={(e) => setEditOrder(parseInt(e.target.value, 10) || 0)}
-                        className="w-16 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-xs font-mono"
+                        className="w-16 px-2 py-1 rounded border border-line-strong bg-surface text-xs font-mono"
                       />
                     ) : (
                       cat.sortOrder
@@ -273,7 +273,7 @@ export function CategoriesManager() {
                         </button>
                         <button
                           onClick={() => setEditingId(null)}
-                          className="p-1 rounded text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                          className="p-1 rounded text-ink-3 hover:bg-subtle"
                           title="取消"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -283,14 +283,14 @@ export function CategoriesManager() {
                       <div className="inline-flex items-center gap-1.5">
                         <button
                           onClick={() => startEdit(cat)}
-                          className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                          className="p-1.5 rounded-md text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
                           title="编辑"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(cat.id)}
-                          className="p-1.5 rounded-md text-neutral-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                          className="p-1.5 rounded-md text-ink-3 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                           title="删除"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

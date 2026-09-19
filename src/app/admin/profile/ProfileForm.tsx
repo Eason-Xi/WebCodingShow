@@ -102,7 +102,7 @@ export function ProfileForm() {
 
   if (loading) {
     return (
-      <div className="p-10 text-center text-sm text-neutral-400">
+      <div className="p-10 text-center text-sm text-ink-3">
         加载个人资料中...
       </div>
     )
@@ -111,41 +111,41 @@ export function ProfileForm() {
   return (
     <div className="p-6 sm:p-10 max-w-3xl w-full">
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-ink">
           个人资料与名片
         </h1>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+        <p className="text-sm text-ink-3 mt-1">
           配置前台首页 Hero 区域展示的姓名、职业定位、个人介绍及社交联系外链。
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 rounded-2xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400">
+        <div className="mb-6 p-4 rounded-card bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {success && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
+        <div className="mb-6 p-4 rounded-card bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>个人资料已更新，前台首页已即时生效！</span>
         </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs space-y-5">
+        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           {/* 头像 */}
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+            <label className="block text-xs font-medium text-ink-2 mb-2">
               个人头像
             </label>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shrink-0">
+              <div className="w-16 h-16 rounded-full overflow-hidden bg-subtle border border-line shrink-0">
                 {avatar ? (
                   <img src={avatar} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                  <div className="w-full h-full flex items-center justify-center text-ink-3">
                     <User className="w-6 h-6" />
                   </div>
                 )}
@@ -156,7 +156,7 @@ export function ProfileForm() {
                   value={avatar}
                   onChange={(e) => setAvatar(e.target.value)}
                   placeholder="输入头像图片 URL..."
-                  className="w-full px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono mb-2"
+                  className="w-full px-3 py-2 rounded-btn border border-line-strong bg-subtle text-xs font-mono mb-2"
                 />
                 <input
                   type="file"
@@ -169,7 +169,7 @@ export function ProfileForm() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-xs font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors inline-flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-lg border border-line text-xs font-medium text-ink-2 hover:bg-subtle transition-colors inline-flex items-center gap-1.5"
                 >
                   <Upload className="w-3 h-3" />
                   <span>{uploading ? '上传中...' : '上传本地头像'}</span>
@@ -180,7 +180,7 @@ export function ProfileForm() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 展示姓名 / 昵称
               </label>
               <input
@@ -188,13 +188,13 @@ export function ProfileForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="例如：Alex Chen"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+              <label className="block text-xs font-medium text-ink-2 mb-1.5">
                 职业定位 / 核心头衔
               </label>
               <input
@@ -202,14 +202,14 @@ export function ProfileForm() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="例如：Full-Stack Developer & Creative Coder"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               一句话自我介绍 (Hero Bio)
             </label>
             <textarea
@@ -217,19 +217,19 @@ export function ProfileForm() {
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="概括你的核心技术专长、设计审美或创作初衷..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white resize-none"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 resize-none"
             />
           </div>
         </div>
 
         {/* 社交联系外链 */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 shadow-2xs space-y-4">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white border-b border-neutral-100 dark:border-neutral-800 pb-3">
+        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-4">
+          <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             社交与联系外链（展示于页脚与前台）
           </h2>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               GitHub 地址
             </label>
             <input
@@ -237,12 +237,12 @@ export function ProfileForm() {
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
               placeholder="https://github.com/yourname"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               Twitter / X 主页
             </label>
             <input
@@ -250,12 +250,12 @@ export function ProfileForm() {
               value={xUrl}
               onChange={(e) => setXUrl(e.target.value)}
               placeholder="https://x.com/yourhandle"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
+            <label className="block text-xs font-medium text-ink-2 mb-1.5">
               联系邮箱
             </label>
             <input
@@ -263,7 +263,7 @@ export function ProfileForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your-email@example.com"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export function ProfileForm() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-btn bg-brand text-brand-ink text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-soft cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? '保存中...' : '保存资料'}</span>
