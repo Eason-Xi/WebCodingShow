@@ -230,19 +230,36 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
         </div>
 
-        {/* 快速精选开关徽章 */}
-        <button
-          type="button"
-          onClick={() => setFeatured(!featured)}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-all ${
-            featured
-              ? 'bg-amber-500 text-white shadow-xs'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{featured ? '已设为首页精选' : '设为首页精选'}</span>
-        </button>
+        {/* 顶部操作区 */}
+        <div className="flex items-center gap-3">
+          {/* 快速精选开关徽章 */}
+          <button
+            type="button"
+            onClick={() => setFeatured(!featured)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-all ${
+              featured
+                ? 'bg-amber-500 text-white shadow-xs'
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{featured ? '已设为首页精选' : '设为首页精选'}</span>
+          </button>
+
+          {/* 顶部主保存按钮 */}
+          <button
+            type="button"
+            onClick={(e) => {
+              const form = document.querySelector('form')
+              if (form) form.requestSubmit()
+            }}
+            disabled={submitting}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            <span>{submitting ? '保存中...' : isEdit ? '更新项目' : '立即发布作品'}</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -498,21 +515,21 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 底部保存提交栏 */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-neutral-200 dark:border-neutral-800">
           <Link
             href="/admin/projects"
-            className="px-5 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-800 text-sm font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-neutral-300 dark:border-neutral-700 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-center"
           >
-            取消返回
+            ← 取消返回列表
           </Link>
 
           <button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold shadow-lg hover:shadow-xl active:scale-98 transition-all cursor-pointer disabled:opacity-50 min-w-[200px]"
           >
             <Save className="w-4 h-4" />
-            <span>{submitting ? '正在保存...' : isEdit ? '更新项目' : '立即发布作品'}</span>
+            <span>{submitting ? '正在保存发布...' : isEdit ? '保存更新项目' : '立即发布新作品 🚀'}</span>
           </button>
         </div>
       </form>
