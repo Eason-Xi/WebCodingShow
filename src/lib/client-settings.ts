@@ -82,3 +82,32 @@ export function getAIHeaders(): Record<string, string> {
   }
   return headers;
 }
+
+const LOCAL_PROJECTS_KEY = "ai_interview_local_projects_mirror_v1";
+
+export function getLocalProjectsMirror(): any[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(LOCAL_PROJECTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalProjectsMirror(projects: any[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(LOCAL_PROJECTS_KEY, JSON.stringify(projects));
+  } catch (e) {
+    console.warn("Failed to update local projects mirror", e);
+  }
+}
+
+export function syncProjectToLocalMirror(project: any): void {
+  if (typeof window === "undefined" || !project || !project.id) return;
+  const list = getLocalProjectsMirror();
+  const next = [project, ...list.filter((p: any) => p.id !== project.id)];
+  saveLocalProjectsMirror(next);
+}
+

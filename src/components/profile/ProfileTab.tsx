@@ -99,7 +99,7 @@ export default function ProfileTab({ project, onUpdate }: Props) {
         requestJson<GuestProfile>("/api/research/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: project.id }),
+          body: JSON.stringify({ projectId: project.id, project }),
         }),
       "人物研究失败"
     );

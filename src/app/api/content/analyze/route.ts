@@ -7,8 +7,12 @@ import { GoldenQuote, ShortVideoClip } from "@/types";
 export async function POST(req: NextRequest) {
   try {
     const customConfig = extractLLMConfigFromHeaders(req.headers);
-    const { projectId, rawText } = await req.json();
-    const project = StorageService.getProjectById(projectId);
+    const { projectId, rawText, project: clientProject } = await req.json();
+    let project = StorageService.getProjectById(projectId);
+    if (!project && clientProject) {
+      StorageService.saveProject(clientProject);
+      project = clientProject;
+    }
     if (!project) {
       return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });
     }

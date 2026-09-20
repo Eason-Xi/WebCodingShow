@@ -27,6 +27,11 @@ import InterviewTab from "@/components/interview/InterviewTab";
 import TranscriptTab from "@/components/transcript/TranscriptTab";
 import ContentTab from "@/components/content/ContentTab";
 
+import {
+  getLocalProjectsMirror,
+  syncProjectToLocalMirror,
+} from "@/lib/client-settings";
+
 type ActiveTab = StageKey;
 
 const STAGE_ICONS = [Compass, BookOpen, Mic, FileAudio, Video];
@@ -40,17 +45,38 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>("profile");
 
+  const handleUpdateProject = (updated: InterviewProject) => {
+    setProject(updated);
+    syncProjectToLocalMirror(updated);
+  };
+
   const fetchProject = async () => {
     try {
       const res = await fetch(`/api/projects/${id}`);
       const json = await res.json();
-      if (json.success) {
+      if (json.success && json.data) {
         setProject(json.data);
+        syncProjectToLocalMirror(json.data);
       } else {
-        toast.error("加载项目失败", json.error || "服务端未返回该项目");
+        const local = getLocalProjectsMirror().find((p: any) => p.id === id);
+        if (local) {
+          setProject(local);
+          fetch(`/api/projects/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(local),
+          }).catch(() => {});
+        } else {
+          toast.error("加载项目失败", json.error || "服务端未返回该项目");
+        }
       }
     } catch (err) {
-      toast.error("加载项目失败", err instanceof Error ? err.message : "网络请求异常");
+      const local = getLocalProjectsMirror().find((p: any) => p.id === id);
+      if (local) {
+        setProject(local);
+      } else {
+        toast.error("加载项目失败", err instanceof Error ? err.message : "网络请求异常");
+      }
     } finally {
       setLoading(false);
     }
@@ -363,19 +389,19 @@ export default function ProjectDetailPage() {
         {/* Tab 内容 */}
         <div key={activeTab} className="animate-fade min-w-0">
           {activeTab === "profile" && (
-            <ProfileTab project={project} onUpdate={(updated) => setProject(updated)} />
+            <ProfileTab project={project} onUpdate={handleUpdateProject} />
           )}
           {activeTab === "planning" && (
-            <PlanningTab project={project} onUpdate={(updated) => setProject(updated)} />
+            <PlanningTab project={project} onUpdate={handleUpdateProject} />
           )}
           {activeTab === "interview" && (
-            <InterviewTab project={project} onUpdate={(updated) => setProject(updated)} />
+            <InterviewTab project={project} onUpdate={handleUpdateProject} />
           )}
           {activeTab === "transcript" && (
-            <TranscriptTab project={project} onUpdate={(updated) => setProject(updated)} />
+            <TranscriptTab project={project} onUpdate={handleUpdateProject} />
           )}
           {activeTab === "content" && (
-            <ContentTab project={project} onUpdate={(updated) => setProject(updated)} />
+            <ContentTab project={project} onUpdate={handleUpdateProject} />
           )}
         </div>
       </div>

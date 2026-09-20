@@ -23,11 +23,18 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   // 先解析请求体、再在同步的 updateProject 里读取最新数据并合并：
   // 中途不再有 await，因此不会与并发的 AI 写回互相覆盖。
   // 客户端只应提交变更的字段（局部补丁），未提交的字段保持最新值。
-  const updated = StorageService.updateProject(id, (latest) => ({
+  let updated = StorageService.updateProject(id, (latest) => ({
     ...latest,
     ...body,
     id,
   }));
+
+  if (!updated && (body as any)?.guestName) {
+    updated = StorageService.saveProject({
+      ...(body as any),
+      id,
+    });
+  }
 
   if (!updated) {
     return NextResponse.json({ success: false, error: "Project not found" }, { status: 404 });

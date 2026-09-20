@@ -40,6 +40,11 @@ import {
 } from "@/components/ui/Primitives";
 import { confirmDialog, requestJson, runTask, toast } from "@/components/ui/Feedback";
 import { useFocusTrap } from "@/components/ui/useFocusTrap";
+import {
+  getLocalProjectsMirror,
+  saveLocalProjectsMirror,
+  syncProjectToLocalMirror,
+} from "@/lib/client-settings";
 
 const STYLES: InterviewStyle[] = [
   "人物故事",
@@ -118,12 +123,23 @@ export default function HomePage() {
       const res = await fetch("/api/projects");
       const json = await res.json();
       if (json.success) {
-        setProjects(json.data);
+        const serverProjects: InterviewProject[] = json.data || [];
+        const localMirror: InterviewProject[] = getLocalProjectsMirror();
+        const map = new Map<string, InterviewProject>();
+        localMirror.forEach((p) => map.set(p.id, p));
+        serverProjects.forEach((p) => map.set(p.id, p));
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        );
+        setProjects(merged);
+        saveLocalProjectsMirror(merged);
       } else {
-        toast.error("加载项目列表失败", json.error || "服务端未返回数据");
+        const fallback = getLocalProjectsMirror();
+        if (fallback.length > 0) setProjects(fallback);
       }
     } catch (e) {
-      toast.error("加载项目列表失败", e instanceof Error ? e.message : "网络请求异常");
+      const fallback = getLocalProjectsMirror();
+      if (fallback.length > 0) setProjects(fallback);
     } finally {
       setLoading(false);
     }
@@ -159,11 +175,11 @@ export default function HomePage() {
     }
     setCreating(true);
 
-    const { ok } = await runTask(
+    const { ok, data } = await runTask<InterviewProject>(
       "正在创建访谈项目...",
       `项目「${guestName}」已创建`,
       () =>
-        requestJson("/api/projects", {
+        requestJson<InterviewProject>("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -181,7 +197,8 @@ export default function HomePage() {
       "创建访谈项目失败"
     );
 
-    if (ok) {
+    if (ok && data) {
+      syncProjectToLocalMirror(data);
       setShowModal(false);
       // 清空表单
       setGuestName("");
@@ -213,7 +230,9 @@ export default function HomePage() {
       "删除项目失败"
     );
     if (ok) {
-      setProjects((prev) => prev.filter((p) => p.id !== id));
+      const next = projects.filter((p) => p.id !== id);
+      setProjects(next);
+      saveLocalProjectsMirror(next);
     }
   };
 

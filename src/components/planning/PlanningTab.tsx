@@ -60,7 +60,7 @@ export default function PlanningTab({ project, onUpdate }: Props) {
         requestJson<InterviewChapter[]>("/api/planner/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: project.id }),
+          body: JSON.stringify({ projectId: project.id, project }),
         }),
       "策划大纲生成失败"
     );

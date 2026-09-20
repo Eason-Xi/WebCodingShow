@@ -42,7 +42,7 @@ export default function ContentTab({ project, onUpdate }: Props) {
         requestJson("/api/content/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: project.id }),
+          body: JSON.stringify({ projectId: project.id, project }),
         }),
       "内容生成失败"
     );

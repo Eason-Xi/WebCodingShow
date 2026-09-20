@@ -67,7 +67,7 @@ export default function InterviewTab({ project, onUpdate }: Props) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: project.id, message: textToSend }),
+          body: JSON.stringify({ projectId: project.id, message: textToSend, project }),
         }
       );
       onUpdate({
@@ -98,7 +98,7 @@ export default function InterviewTab({ project, onUpdate }: Props) {
         requestJson<SimulationReview>("/api/simulation/review", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ projectId: project.id }),
+          body: JSON.stringify({ projectId: project.id, project }),
         }),
       "复盘报告生成失败"
     );

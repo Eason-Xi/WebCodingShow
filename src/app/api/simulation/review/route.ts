@@ -6,8 +6,12 @@ import { PROMPTS } from "@/lib/ai/prompts";
 export async function POST(req: NextRequest) {
   try {
     const customConfig = extractLLMConfigFromHeaders(req.headers);
-    const { projectId } = await req.json();
-    const project = StorageService.getProjectById(projectId);
+    const { projectId, project: clientProject } = await req.json();
+    let project = StorageService.getProjectById(projectId);
+    if (!project && clientProject) {
+      StorageService.saveProject(clientProject);
+      project = clientProject;
+    }
     if (!project || !project.simulationSession) {
       return NextResponse.json({ success: false, error: "Simulation session not found" }, { status: 404 });
     }
