@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get('search')?.trim() || ''
     const categoryId = searchParams.get('categoryId') || ''
-    const status = searchParams.get('status') || 'published'
+    const status = (await isAuthenticated())
+      ? searchParams.get('status') || 'published'
+      : 'published'
     const featured = searchParams.get('featured')
     const sort = searchParams.get('sort') || 'order' // 'order' | 'newest' | 'oldest' | 'title'
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12', 10)))
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1)
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '12', 10) || 12))
     const skip = (page - 1) * limit
 
-    const where: any = {}
+    const where: Prisma.ProjectWhereInput = {}
 
     // 状态过滤 (对于访客前台，强制仅 published；对于后台如果传 all 则不过滤)
     if (status && status !== 'all') {
@@ -41,7 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 排序逻辑
-    let orderBy: any = [{ sortOrder: 'desc' }, { createdAt: 'desc' }]
+    let orderBy: Prisma.ProjectOrderByWithRelationInput[] = [{ sortOrder: 'desc' }, { createdAt: 'desc' }]
     if (sort === 'newest') {
       orderBy = [{ completedAt: 'desc' }, { createdAt: 'desc' }]
     } else if (sort === 'oldest') {
@@ -124,7 +127,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 生成唯一 slug
-    let baseSlug = title
+    const baseSlug = title
       .toLowerCase()
       .trim()
       .replace(/[^\w\u4e00-\u9fa5]+/g, '-')

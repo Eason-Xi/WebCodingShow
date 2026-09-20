@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import type { Prisma } from '@prisma/client'
 
 export async function GET(
   req: NextRequest,
@@ -16,12 +17,12 @@ export async function GET(
       },
     })
 
-    if (!project) {
+    if (!project || (project.status !== 'published' && !(await isAuthenticated()))) {
       return NextResponse.json({ error: '项目未找到' }, { status: 404 })
     }
 
     return NextResponse.json(project)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '获取项目详情失败' }, { status: 500 })
   }
 }
@@ -63,7 +64,7 @@ export async function PUT(
       description,
     } = body
 
-    const updateData: any = {}
+    const updateData: Prisma.ProjectUpdateInput = {}
 
     if (title !== undefined) updateData.title = title.trim()
     if (url !== undefined) {
@@ -74,8 +75,13 @@ export async function PUT(
     }
     if (summary !== undefined) updateData.summary = summary.trim()
     if (cover !== undefined) updateData.cover = cover ? cover.trim() : null
-    if (categoryId !== undefined) updateData.categoryId = categoryId
-    if (status !== undefined) updateData.status = status
+    if (categoryId !== undefined) updateData.category = { connect: { id: categoryId } }
+    if (status !== undefined) {
+      if (!['published', 'draft'].includes(status)) {
+        return NextResponse.json({ error: '无效的发布状态' }, { status: 400 })
+      }
+      updateData.status = status
+    }
     if (featured !== undefined) updateData.featured = Boolean(featured)
     if (sortOrder !== undefined) updateData.sortOrder = Number(sortOrder)
     if (sourceUrl !== undefined) updateData.sourceUrl = sourceUrl ? sourceUrl.trim() : null
@@ -144,7 +150,7 @@ export async function DELETE(
       where: { id },
     })
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '删除项目失败' }, { status: 500 })
   }
 }

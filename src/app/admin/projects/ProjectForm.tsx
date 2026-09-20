@@ -128,6 +128,10 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > 4 * 1024 * 1024 || !['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) {
+      setError('请上传 4 MB 以内的 PNG、JPEG、WebP 或 GIF 图片')
+      return
+    }
     // 0 毫秒本地即时预览
     const objectUrl = URL.createObjectURL(file)
     setLocalPreview(objectUrl)

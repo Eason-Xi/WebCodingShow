@@ -1,0 +1,60 @@
+// Keep models identical to ../schema.prisma (local SQLite).
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Profile {
+  id        String   @id @default("default")
+  name      String   @default("Web 独立开发者")
+  title     String   @default("Full-Stack Developer & Creative Coder")
+  bio       String   @default("致力于构建高可用、具美感且充满想象力的现代 Web 与 AI 产品。")
+  avatar    String?
+  githubUrl String?
+  xUrl      String?
+  email     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  projects  Project[]
+  createdAt DateTime  @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  url         String
+  cover       String?
+  summary     String
+  description String?
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags        Tag[]
+  status      String   @default("published")
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  sourceUrl   String?
+  completedAt String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

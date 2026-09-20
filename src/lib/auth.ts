@@ -1,7 +1,14 @@
 import { cookies } from 'next/headers'
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
-const JWT_SECRET = process.env.JWT_SECRET || 'web-coding-platform-super-secret-key-2026'
+function requiredSecret(name: 'ADMIN_PASSWORD' | 'JWT_SECRET'): string {
+  const value = process.env[name]
+  const minimum = name === 'JWT_SECRET' ? 32 : 12
+  if (!value || (process.env.NODE_ENV === 'production' &&
+    (value.length < minimum || value === 'web-coding-platform-super-secret-key-2026'))) {
+    throw new Error(`${name} must be configured securely`)
+  }
+  return value
+}
 const COOKIE_NAME = 'admin_session'
 
 // 基于 Web Crypto 实现安全无外部臃肿依赖的 Token 签名与校验
@@ -9,7 +16,7 @@ async function getKey(): Promise<CryptoKey> {
   const enc = new TextEncoder()
   return await crypto.subtle.importKey(
     'raw',
-    enc.encode(JWT_SECRET),
+    enc.encode(requiredSecret('JWT_SECRET')),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign', 'verify']
@@ -33,7 +40,7 @@ export async function createSessionToken(): Promise<string> {
 }
 
 export async function verifySessionToken(token: string | undefined): Promise<boolean> {
-  if (!token || !token.includes('.')) return false
+  if (!token || token.split('.').length !== 2) return false
   const [encodedPayload, signature] = token.split('.')
   try {
     const key = await getKey()
@@ -57,14 +64,13 @@ export async function verifySessionToken(token: string | undefined): Promise<boo
 }
 
 export async function checkAdminPassword(password: string): Promise<boolean> {
-  return password === ADMIN_PASSWORD
+  return typeof password === 'string' && password === requiredSecret('ADMIN_PASSWORD')
 }
 
 export async function setAdminSessionCookie(): Promise<void> {
   const token = await createSessionToken()
   const cookieStore = await cookies()
-  // 仅在真实生产且非 localhost 情况下强制 Secure Cookie
-  const isSecure = process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production'
+  const isSecure = process.env.NODE_ENV === 'production'
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: isSecure,
