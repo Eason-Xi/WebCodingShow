@@ -14,3 +14,4 @@ Thumbs.db
 # 工作区元数据（记忆、会话状态），不入库
 .workbuddy-ai/
 *.tsbuildinfo
+.vercel
