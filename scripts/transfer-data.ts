@@ -50,6 +50,7 @@ async function main() {
     const content = await readFile(path.join('public/uploads', name))
     const blob = await put(`migrated/${randomUUID()}${path.extname(name)}`, content, {
       access: 'public', contentType: type, addRandomSuffix: false,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
     })
     images.set(url, blob.url)
     uploads.push({ source: url, url: blob.url })
