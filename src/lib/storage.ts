@@ -3,8 +3,22 @@ import path from "path";
 import { InterviewProject } from "@/types";
 import { normalizeProject } from "@/lib/normalize";
 
-const DATA_DIR = path.join(process.cwd(), "data");
+// 检测是否处于 Serverless 只读文件系统环境（如 Vercel、AWS Lambda）
+const isServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  (process.env.NODE_ENV === "production" && !process.env.IS_LOCAL_BUILD)
+);
+
+// 随代码打包的种子数据路径（只读源码）
+const SEED_FILE = path.join(process.cwd(), "data", "projects.json");
+
+// 读写数据目录：在 Serverless 环境下定向至唯一允许写入的 /tmp，本地开发则继续保存在 ./data
+const DATA_DIR = isServerless ? path.join("/tmp", "ai-interview-director") : path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "projects.json");
+
+// 内存级单例缓存，防范文件系统极端不可写情况，保证 API 永不抛 500
+let inMemoryProjects: InterviewProject[] | null = null;
 
 // 预置符合 PRD 演示案例的初始数据
 const INITIAL_DEMO_PROJECT: InterviewProject = {
@@ -312,27 +326,57 @@ const INITIAL_DEMO_PROJECT: InterviewProject = {
 };
 
 export class StorageService {
-  private static ensureDataDir() {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+  /**
+   * 加载初始种子数据（优先随代码构建的 projects.json，兜底为内置初始案例）
+   */
+  private static getInitialProjects(): InterviewProject[] {
+    try {
+      if (fs.existsSync(SEED_FILE)) {
+        const raw = fs.readFileSync(SEED_FILE, "utf-8");
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(normalizeProject);
+        }
+      }
+    } catch (err) {
+      console.warn("[StorageService] Failed to read seed projects.json, falling back to INITIAL_DEMO_PROJECT", err);
     }
-    if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, JSON.stringify([INITIAL_DEMO_PROJECT], null, 2), "utf-8");
+    return [INITIAL_DEMO_PROJECT];
+  }
+
+  private static ensureDataDir() {
+    try {
+      if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+      }
+      if (!fs.existsSync(DATA_FILE)) {
+        const seedData = this.getInitialProjects();
+        fs.writeFileSync(DATA_FILE, JSON.stringify(seedData, null, 2), "utf-8");
+      }
+    } catch (err) {
+      console.warn("[StorageService] File system access restricted or read-only, falling back to memory:", err);
     }
   }
 
   static getProjects(): InterviewProject[] {
     this.ensureDataDir();
     try {
-      const data = fs.readFileSync(DATA_FILE, "utf-8");
-      const parsed = JSON.parse(data);
-      // 统一在读取处归一化：无论数据是怎么写进来的（AI 缺字段、手工编辑、
-      // 旧版本格式），UI 拿到的都是完整形状，不会因 undefined 访问而白屏。
-      return (Array.isArray(parsed) ? parsed : []).map(normalizeProject);
+      if (fs.existsSync(DATA_FILE)) {
+        const data = fs.readFileSync(DATA_FILE, "utf-8");
+        const parsed = JSON.parse(data);
+        const normalized = (Array.isArray(parsed) ? parsed : []).map(normalizeProject);
+        inMemoryProjects = normalized;
+        return normalized;
+      }
     } catch (e) {
-      console.error("Failed to read projects from storage", e);
-      return [INITIAL_DEMO_PROJECT];
+      console.warn("[StorageService] Failed to read projects from disk, falling back to memory cache", e);
     }
+
+    // 内存保底
+    if (!inMemoryProjects) {
+      inMemoryProjects = this.getInitialProjects();
+    }
+    return inMemoryProjects;
   }
 
   static getProjectById(id: string): InterviewProject | null {
@@ -351,7 +395,17 @@ export class StorageService {
       projects.unshift(project);
     }
 
-    fs.writeFileSync(DATA_FILE, JSON.stringify(projects, null, 2), "utf-8");
+    // 同步更新内存缓存，确保当前运行实例绝对一致
+    inMemoryProjects = projects;
+
+    // 尝试持久化到磁盘
+    try {
+      this.ensureDataDir();
+      fs.writeFileSync(DATA_FILE, JSON.stringify(projects, null, 2), "utf-8");
+    } catch (err) {
+      console.warn("[StorageService] File write failed, maintained in memory:", err);
+    }
+
     return project;
   }
 
@@ -359,7 +413,13 @@ export class StorageService {
     const projects = this.getProjects();
     const filtered = projects.filter((p) => p.id !== id);
     if (filtered.length !== projects.length) {
-      fs.writeFileSync(DATA_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+      inMemoryProjects = filtered;
+      try {
+        this.ensureDataDir();
+        fs.writeFileSync(DATA_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+      } catch (err) {
+        console.warn("[StorageService] File delete failed, maintained in memory:", err);
+      }
       return true;
     }
     return false;
@@ -367,12 +427,6 @@ export class StorageService {
 
   /**
    * 原子地「重新读取 → 应用变更 → 写回」。
-   *
-   * AI 路由的典型流程是「读项目 → 等 LLM（真实模型下要数秒）→ 整体写回」。
-   * 等待期间用户的其它操作（标记已问、编辑笔记、录入资料）会被这份过期快照整体覆盖。
-   *
-   * 改成写回时重新读取最新数据、只应用本路由负责的字段，就不会丢并发更新。
-   * 函数体全程同步（同步 fs + 单线程），不会与其他请求交错执行。
    */
   static updateProject(
     id: string,
@@ -387,7 +441,15 @@ export class StorageService {
     next.updatedAt = new Date().toISOString();
     projects[index] = next;
 
-    fs.writeFileSync(DATA_FILE, JSON.stringify(projects, null, 2), "utf-8");
+    inMemoryProjects = projects;
+
+    try {
+      this.ensureDataDir();
+      fs.writeFileSync(DATA_FILE, JSON.stringify(projects, null, 2), "utf-8");
+    } catch (err) {
+      console.warn("[StorageService] File update failed, maintained in memory:", err);
+    }
+
     return next;
   }
 }
