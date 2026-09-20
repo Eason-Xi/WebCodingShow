@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StorageService } from "@/lib/storage";
-import { LLMGateway } from "@/lib/ai/client";
+import { LLMGateway, extractLLMConfigFromHeaders } from "@/lib/ai/client";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { InterviewChapter, InterviewQuestion } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
+    const customConfig = extractLLMConfigFromHeaders(req.headers);
     const { projectId } = await req.json();
     const project = StorageService.getProjectById(projectId);
     if (!project) {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个资深访谈策划总监，按故事脉络组织采访章节与多级问题，只输出严格 JSON 格式。" },
       { role: "user", content: prompt },
-    ], { jsonMode: true, task: "plan" });
+    ], { jsonMode: true, task: "plan", customConfig });
 
     let planData;
     try {

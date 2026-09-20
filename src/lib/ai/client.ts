@@ -8,6 +8,20 @@ interface ChatCompletionMessage {
   content: string;
 }
 
+export interface LLMCustomConfig {
+  apiKey?: string | null;
+  baseUrl?: string | null;
+  model?: string | null;
+}
+
+export function extractLLMConfigFromHeaders(headers: Headers): LLMCustomConfig {
+  return {
+    apiKey: headers.get("x-api-key") || undefined,
+    baseUrl: headers.get("x-base-url") || undefined,
+    model: headers.get("x-model") || undefined,
+  };
+}
+
 export class LLMGateway {
   private static getApiKey(): string | null {
     return process.env.OPENAI_API_KEY || null;
@@ -26,15 +40,15 @@ export class LLMGateway {
    */
   static async chat(
     messages: ChatCompletionMessage[],
-    options: { jsonMode?: boolean; task?: LLMTask } = {}
+    options: { jsonMode?: boolean; task?: LLMTask; customConfig?: LLMCustomConfig } = {}
   ): Promise<string> {
-    const { jsonMode = false, task } = options;
-    const apiKey = this.getApiKey();
-    const baseUrl = this.getBaseUrl();
-    const model = this.getModel();
+    const { jsonMode = false, task, customConfig } = options;
+    const apiKey = customConfig?.apiKey || this.getApiKey();
+    const baseUrl = customConfig?.baseUrl || this.getBaseUrl();
+    const model = customConfig?.model || this.getModel();
 
     if (!apiKey) {
-      console.warn("未检测到 OPENAI_API_KEY，使用高质量智能 Mock 引擎生成响应");
+      console.warn("未检测到 API Key，使用高质量智能 Mock 引擎生成响应");
       return this.mockResponse(messages, task);
     }
 
@@ -55,15 +69,32 @@ export class LLMGateway {
 
       if (!res.ok) {
         const errText = await res.text();
-        console.error("LLM API 调用失败:", errText);
-        // 如果云端 API 失败，降级回 Mock，确保 UI 不崩溃
+        console.error("LLM API 调用失败:", res.status, errText);
+        // 如果是用户自定义了专属 Key，直接抛出错误让前端捕获具体原因（如 401 密钥失效）
+        if (customConfig?.apiKey) {
+          throw new Error(`AI 服务请求失败 [${res.status}]: ${errText.slice(0, 150)}`);
+        }
+        // 如果是全局默认服务临时波动，降级回 Mock，确保 UI 不崩溃
         return this.mockResponse(messages, task);
       }
 
       const data = await res.json();
-      return data.choices[0]?.message?.content || "";
-    } catch (err) {
+      let content = data.choices?.[0]?.message?.content || "";
+
+      // 清理 Markdown 代码块包裹（如 ```json ... ```）
+      if (jsonMode && typeof content === "string") {
+        const trimmed = content.trim();
+        if (trimmed.startsWith("```")) {
+          content = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+        }
+      }
+
+      return content;
+    } catch (err: any) {
       console.error("LLM 调用异常:", err);
+      if (customConfig?.apiKey) {
+        throw err;
+      }
       return this.mockResponse(messages, task);
     }
   }

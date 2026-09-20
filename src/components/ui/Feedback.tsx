@@ -71,14 +71,25 @@ export async function runTask<T>(
   }
 }
 
+import { getAIHeaders } from "@/lib/client-settings";
+
 /** 请求 JSON 并在 success=false 时抛出可读错误 */
 export async function requestJson<T = unknown>(
   url: string,
   init?: RequestInit
 ): Promise<T> {
   let res: Response;
+  const customAiHeaders = typeof window !== "undefined" ? getAIHeaders() : {};
+  const mergedHeaders = {
+    ...customAiHeaders,
+    ...(init?.headers || {}),
+  };
+
   try {
-    res = await fetch(url, init);
+    res = await fetch(url, {
+      ...init,
+      headers: mergedHeaders,
+    });
   } catch {
     throw new Error("网络请求失败，请确认服务是否在运行");
   }

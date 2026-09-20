@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: "全流程 AI 驱动的人物访谈与内容生产工作台，让 AI 成为您身边的第二个导演。",
 };
 
+import AISettingsModal from "@/components/ui/AISettingsModal";
+
 export default function RootLayout({
   children,
 }: {
@@ -53,6 +55,8 @@ export default function RootLayout({
                 </span>
                 <span>DIRECTOR ENGINE ACTIVE</span>
               </div>
+
+              <AISettingsModal />
 
               <ThemeToggle />
 

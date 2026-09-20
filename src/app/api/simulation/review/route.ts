@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StorageService } from "@/lib/storage";
-import { LLMGateway } from "@/lib/ai/client";
+import { LLMGateway, extractLLMConfigFromHeaders } from "@/lib/ai/client";
 import { PROMPTS } from "@/lib/ai/prompts";
 
 export async function POST(req: NextRequest) {
   try {
+    const customConfig = extractLLMConfigFromHeaders(req.headers);
     const { projectId } = await req.json();
     const project = StorageService.getProjectById(projectId);
     if (!project || !project.simulationSession) {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个严格、专业的访谈总导演，输出复盘 JSON 结构。" },
       { role: "user", content: prompt },
-    ], { jsonMode: true, task: "review" });
+    ], { jsonMode: true, task: "review", customConfig });
 
     let reviewReport;
     try {

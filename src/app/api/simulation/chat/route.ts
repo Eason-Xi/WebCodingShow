@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StorageService } from "@/lib/storage";
-import { LLMGateway } from "@/lib/ai/client";
+import { LLMGateway, extractLLMConfigFromHeaders } from "@/lib/ai/client";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { SimulationMessage } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
+    const customConfig = extractLLMConfigFromHeaders(req.headers);
     const { projectId, message } = await req.json();
     const project = StorageService.getProjectById(projectId);
     if (!project) {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
     const aiReply = await LLMGateway.chat([
       { role: "system", content: systemPrompt },
       ...historyForLLM,
-    ], { task: "chat" });
+    ], { task: "chat", customConfig });
 
     const guestMsg: SimulationMessage = {
       id: `msg-${Date.now()}-g`,

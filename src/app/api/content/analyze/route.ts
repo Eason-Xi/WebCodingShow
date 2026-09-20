@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { StorageService } from "@/lib/storage";
-import { LLMGateway } from "@/lib/ai/client";
+import { LLMGateway, extractLLMConfigFromHeaders } from "@/lib/ai/client";
 import { PROMPTS } from "@/lib/ai/prompts";
 import { GoldenQuote, ShortVideoClip } from "@/types";
 
 export async function POST(req: NextRequest) {
   try {
+    const customConfig = extractLLMConfigFromHeaders(req.headers);
     const { projectId, rawText } = await req.json();
     const project = StorageService.getProjectById(projectId);
     if (!project) {
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     const aiRes = await LLMGateway.chat([
       { role: "system", content: "你是一个爆款内容总监与短视频剪辑总策划，只输出 JSON。" },
       { role: "user", content: prompt },
-    ], { jsonMode: true, task: "content" });
+    ], { jsonMode: true, task: "content", customConfig });
 
     let parsed;
     try {
