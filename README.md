@@ -1,91 +1,119 @@
-# Web Coding 作品聚合平台 (Portfolio & Projects Navigator)
+# WebCoding · 作品集合平台
 
-部署到 Vercel 请先阅读 [部署与数据迁移说明](docs/vercel-deployment.md)。实际技术栈为 Next.js 16.3.5、React 19、Prisma 6.19.3；本地使用 SQLite，云端使用 PostgreSQL 与 Vercel Blob。
+一个用于展示、检索和管理个人 Web / AI 作品的全栈项目。前台展示精选作品与完整作品库，后台维护项目、分类和个人资料，无需为每个新作品修改页面代码。
 
-> 严格遵循 《WebCoding作品聚合平台_PRD_V1.0.docx》 规范打造。
-> 专注于个人面试展示、Web Coding 成果资产化沉淀与零前端代码维护的项目聚合系统。
+[在线体验](https://webcoding-show.vercel.app) · [完整作品库](https://webcoding-show.vercel.app/projects) · [部署与数据迁移](docs/vercel-deployment.md)
 
----
+## 项目截图
 
-## 🌟 核心特色与设计原则
+以下为线上页面的真实截图，展示窄屏响应式布局。截图采集于 2026-09-20；页面内容可通过后台更新。
 
-- **零代码维护闭环**：以后每开发完一个网页项目，只需在管理后台录入一条记录（名称、线上 URL、简介、分类），前台自动即刻呈现，彻底告别频繁改动前端静态代码。
-- **面向 500–1000+ 规模设计**：
-  - 拒绝单一无序瀑布流，采用**“首页精选聚焦（6-12 个代表作）+ 完整作品库（多维筛选与分页）”**分层展现。
-  - 支持即时防抖关键词搜索（名称、简介、技术标签）、分类胶囊筛选与多维度排序（精选优先/排序权重/时间）。
-- **极简工程自洽**：
-  - 前台作品展示与后台管理系统统一集成在 Next.js 16 App Router 单体工程内。
-  - 基于 Prisma ORM，本地使用 SQLite，Vercel 使用 PostgreSQL 与 Blob；通过环境变量选择数据库，并提供数据迁移脚本。
-  - Linear / Vercel 现代极简视觉风格，细致的毛玻璃边框微光、呼吸感知悬浮微动效。
+| 首页 · 个人名片 | 精选作品 · 项目卡片 | 作品库 · 搜索与筛选 |
+| --- | --- | --- |
+| ![首页个人介绍、技术标签和导航入口](docs/screenshots/home.jpg) | ![精选作品的封面、简介与技术标签](docs/screenshots/featured.jpg) | ![完整作品库的搜索、排序与分类筛选](docs/screenshots/projects.jpg) |
 
----
+## 主要功能
 
-## 🛠️ 技术栈
+- **作品展示**：个人名片、精选代表作、分类导航，以及项目在线体验和源码链接。
+- **作品检索**：关键词搜索、分类筛选、分页，以及精选优先、排序权重和完成时间等排序方式。
+- **后台管理**：项目新增与编辑、草稿与发布状态、精选设置、分类管理、个人资料维护。
+- **图片管理**：上传封面与头像，支持 PNG、JPEG、WebP、GIF，单张最大 4 MiB；云端使用 Vercel Blob 持久化保存。
+- **访问控制**：管理员密码登录、签名会话和 HttpOnly Cookie；生产环境使用 Secure Cookie，未登录访客无法读取草稿。
+- **双环境开发**：本地 SQLite，生产 PostgreSQL；提供数据导出、导入和本地图片迁移脚本。
 
-| 模块 | 技术选型 | 说明 |
-| :--- | :--- | :--- |
-| **全栈框架** | Next.js 16 (App Router) + TypeScript | 服务端渲染与路由 |
-| **样式与动效** | Tailwind CSS v4 + 精选现代组件体系 | 现代极简主义设计与响应式适配 |
-| **持久层** | Prisma ORM 6.19 + SQLite / PostgreSQL | 本地与云端数据库配置 |
-| **权限认证** | Web Crypto HMAC Token + HttpOnly Cookie | 独立管理员极简安全鉴权中间件 |
-| **图标与视觉** | Lucide React + 纯矢量 SVG | 保证跨浏览器极佳渲染质量 |
+## 技术栈
 
----
+| 模块 | 技术 |
+| --- | --- |
+| 全栈框架 | Next.js 16.3.5 · App Router · TypeScript |
+| UI | React 19.2 · Tailwind CSS 4 · Lucide React |
+| 数据库 | Prisma 6.19.3 · SQLite（本地）· Neon PostgreSQL（云端） |
+| 图片存储 | 本地文件 / Vercel Blob |
+| 认证 | Web Crypto HMAC 签名会话 · HttpOnly Cookie |
+| 部署 | Vercel · GitHub `main` 分支自动部署 |
 
-## 🚀 快速启动
+## 本地运行
 
-### 1. 安装依赖与同步数据库
-先复制 `.env.example` 为 `.env`，设置独立的 `ADMIN_PASSWORD`（至少 12 位）和随机 `JWT_SECRET`（至少 32 位）。云端初始化请使用上面的部署说明。
+建议使用 Node.js 24，与当前 Vercel 项目的运行时保持一致。
+
+### 1. 获取项目
 
 ```bash
-npm install
-npx prisma db push
-npx tsx prisma/seed.ts   # 注入 6 大基础分类与高质量演示项目数据
+git clone https://github.com/Eason-Xi/WebCodingShow.git
+cd WebCodingShow
+cp .env.example .env
 ```
 
-### 2. 启动本地开发
+编辑 `.env`：保留本地 SQLite 的 `DATABASE_URL="file:./dev.db"`，设置独立的 `ADMIN_PASSWORD`（至少 12 位）和随机 `JWT_SECRET`（至少 32 位）。项目不提供默认管理员密码。
+
+### 2. 安装依赖并初始化数据库
+
+```bash
+npm ci
+npx prisma db push
+npm run db:seed
+```
+
+`db:seed` 会写入演示分类、标签和项目，仅用于初始化演示环境；不要对已有真实数据的生产数据库执行。演示作品的介绍和外链是占位内容，正式使用时请在后台替换。
+
+### 3. 启动开发服务
+
 ```bash
 npm run dev
 ```
 
-### 3. 生产环境构建与启动
-```bash
-npm run build
-npm run start
-```
+打开 [本地首页](http://localhost:3000)，访问 [管理后台](http://localhost:3000/admin) 并使用 `.env` 中的管理员密码登录。
 
-服务默认运行在：`http://localhost:3000`
+> `.env.local` 的优先级高于 `.env`。从云端环境切回 SQLite 时，先移走云端环境文件，运行 `npm run db:generate`，再重启开发服务。
 
----
+## 常用命令
 
-## 🔐 管理后台凭证与路由
+| 命令 | 用途 |
+| --- | --- |
+| `npm run dev` | 生成 Prisma Client 并启动开发服务 |
+| `npm run build` / `npm run start` | 生产构建 / 启动生产服务 |
+| `npm test` | 会话、上传规则和数据库模型一致性测试 |
+| `npx tsc --noEmit` | TypeScript 类型检查 |
+| `npm run db:generate` | 根据环境变量选择 SQLite 或 PostgreSQL Client |
+| `npm run db:migrate` | 应用已提交的数据库迁移 |
+| `npm run data:export` | 将现有内容备份至本地 `backups/` |
+| `npm run data:import` | 将备份导入空 PostgreSQL 数据库并迁移本地图片 |
 
-- **前台首页**：`http://localhost:3000`
-- **全部作品库**：`http://localhost:3000/projects`
-- **后台控制台**：`http://localhost:3000/admin`
-- **后台登录页**：`http://localhost:3000/admin/login`
-- **管理员密码**：使用环境变量 `ADMIN_PASSWORD`，不提供默认密码。
+## 部署到 Vercel
 
----
+当前线上地址为 [webcoding-show.vercel.app](https://webcoding-show.vercel.app)，连接仓库 `Eason-Xi/WebCodingShow` 的 `main` 分支。
 
-## 📁 页面与功能结构
+部署时需要配置以下环境变量，具体步骤见 [部署与数据迁移说明](docs/vercel-deployment.md)：
 
-```
+| 环境变量 | 用途 |
+| --- | --- |
+| `DATABASE_URL` | PostgreSQL 池化连接地址 |
+| `DIRECT_URL` | PostgreSQL 直连地址，用于数据库迁移 |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob 图片存储读写凭证 |
+| `ADMIN_PASSWORD` | 独立的管理员密码，至少 12 位 |
+| `JWT_SECRET` | 随机会话签名密钥，至少 32 位 |
+
+`vercel.json` 使用 `npm run vercel-build`，依次检查配置、生成 Prisma Client、应用 PostgreSQL 迁移并构建应用，不会自动写入演示数据。
+
+请勿提交 `.env`、云端凭证、数据库文件或备份。Preview 应使用独立数据库或 Neon 分支，避免测试影响生产数据。
+
+## 项目结构
+
+```text
 src/
 ├── app/
-│   ├── page.tsx                     # 前台首页 (Hero + 精选作品 + 分类矩阵)
-│   ├── projects/                    # 全部作品库 (搜索 + 分类 Tab + 排序 + 分页)
-│   ├── admin/
-│   │   ├── login/                   # 管理员登录
-│   │   ├── page.tsx                 # 控制台 Dashboard 指标看板
-│   │   ├── projects/                # 项目总表 (快速上下架/精选/删除)
-│   │   │   ├── new/                 # 录入新作品 (完整 PRD 表单)
-│   │   │   └── [id]/edit/           # 编辑作品
-│   │   ├── categories/              # 分类管理 (增删改排)
-│   │   └── profile/                 # 个人名片与社交外链设置
-│   └── api/                         # 完整的 RESTful 数据接口与鉴权中间件
-├── components/                      # Navbar, Footer, ProjectCard, Hero, Icons 等
-└── lib/
-    ├── auth.ts                      # 安全 Session 校验与签发
-    └── prisma.ts                    # Prisma 客户端连接单例
+│   ├── page.tsx             # 首页：个人名片、精选作品、分类导航
+│   ├── projects/            # 完整作品库
+│   ├── admin/               # 登录、仪表盘、项目、分类和个人资料管理
+│   └── api/                 # 项目、认证、上传等接口
+├── components/              # 导航、页脚、项目卡片等组件
+├── lib/                     # 认证、Prisma 客户端和上传规则
+└── proxy.ts                 # 后台路由访问保护
+prisma/
+├── schema.prisma            # 本地 SQLite 模型
+├── seed.ts                  # 演示数据初始化
+└── postgresql/              # 生产 PostgreSQL 模型与迁移
+scripts/                     # 数据库切换、部署构建、数据迁移脚本
+tests/                       # 自动化测试
+docs/                        # 部署文档与项目截图
 ```
