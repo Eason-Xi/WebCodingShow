@@ -11,7 +11,7 @@ import {
   Save,
   AlertCircle,
   CheckCircle2,
-  Image as ImageIcon,
+  GitBranch,
 } from 'lucide-react'
 
 interface Category {
@@ -53,7 +53,9 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [summary, setSummary] = useState(initialData?.summary || '')
   const [cover, setCover] = useState(initialData?.cover || '')
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '')
-  const [tagsInput, setTagsInput] = useState('')
+  const [tagsInput, setTagsInput] = useState(() =>
+    (initialData?.tags || []).map((tag) => typeof tag === 'string' ? tag : tag.name).join(', ')
+  )
   const [status, setStatus] = useState(initialData?.status || 'published')
   const [featured, setFeatured] = useState(Boolean(initialData?.featured))
   const [sortOrder, setSortOrder] = useState<number>(initialData?.sortOrder ?? 0)
@@ -67,46 +69,64 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [fetchingMeta, setFetchingMeta] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [metaMessage, setMetaMessage] = useState('')
   const [success, setSuccess] = useState(false)
 
   // 智能解析 URL 信息
-  const handleFetchMeta = async () => {
-    if (!url.trim() || !/^https?:\/\/.+/i.test(url.trim())) {
-      setError('请先输入有效的 http:// 或 https:// 线上 URL')
+  const handleFetchMeta = async (targetUrl: string) => {
+    if (fetchingMeta || submitting || uploading) return
+    const inputUrl = targetUrl.trim()
+    if (!inputUrl || !/^https?:\/\/.+/i.test(inputUrl)) {
+      setError('请先输入有效的 http:// 或 https:// 链接')
       return
     }
 
     setFetchingMeta(true)
     setError('')
+    setMetaMessage('')
     try {
       const res = await fetch('/api/fetch-meta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim() }),
+        body: JSON.stringify({ url: inputUrl }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '解析失败')
 
-      if (data.title && !title) setTitle(data.title)
-      if (data.summary && !summary) setSummary(data.summary)
-      if (data.cover && !cover) {
-        setCover(data.cover)
+      if (data.title) setTitle((current) => current.trim() ? current : data.title)
+      if (data.summary) setSummary((current) => current.trim() ? current : data.summary)
+      if (data.cover) {
+        setCover((current) => current.trim() ? current : data.cover)
         setImageError(false)
       }
-    } catch (err: any) {
-      setError(err.message || '解析失败，请手动填写')
+      if (data.source === 'github') {
+        if (data.url) setUrl((current) => !current.trim() || current.trim() === inputUrl ? data.url : current)
+        if (data.sourceUrl) setSourceUrl((current) => !current.trim() || current.trim() === inputUrl ? data.sourceUrl : current)
+        if (data.completedAt) setCompletedAt((current) => current.trim() ? current : data.completedAt)
+        if (data.description) setDescription((current) => current.trim() ? current : data.description)
+        if (Array.isArray(data.tags) && data.tags.length) {
+          setTagsInput((current) => {
+            const tags = current.split(/[,，、;；\n]+/).map((tag) => tag.trim()).filter(Boolean)
+            const seen = new Set(tags.map((tag) => tag.toLowerCase()))
+            for (const tag of data.tags) {
+              if (typeof tag === 'string' && !seen.has(tag.toLowerCase())) {
+                tags.push(tag)
+                seen.add(tag.toLowerCase())
+              }
+            }
+            return tags.join(', ')
+          })
+        }
+        setMetaMessage(`${data.partial ? '已读取 GitHub 可用信息，部分信息暂未获取。' : '已读取 GitHub 项目信息。'}标签已合并，其余信息已补充到空白字段。${data.completedAt ? '完成年月按仓库最近推送月份建议，请核对后发布。' : '完成年月请手动填写。'}`)
+      } else {
+        setMetaMessage('已提取网页标题、简介与封面。')
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '解析失败，请手动填写')
     } finally {
       setFetchingMeta(false)
     }
   }
-
-  // 处理初始 tags
-  useEffect(() => {
-    if (initialData?.tags) {
-      const names = initialData.tags.map((t) => (typeof t === 'string' ? t : t.name))
-      setTagsInput(names.join(', '))
-    }
-  }, [initialData])
 
   // 加载分类
   useEffect(() => {
@@ -115,13 +135,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       .then((data) => {
         if (Array.isArray(data)) {
           setCategories(data)
-          if (!categoryId && data.length > 0 && !isEdit) {
-            setCategoryId(data[0].id)
+          if (data.length > 0 && !isEdit) {
+            setCategoryId((current) => current || data[0].id)
           }
         }
       })
       .finally(() => setLoadingCategories(false))
-  }, [])
+  }, [isEdit])
 
   // 上传图片处理：立即本地显示预览，同时后台上传
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,8 +171,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       if (!res.ok) throw new Error(data.error || '图片上传失败')
 
       setCover(data.url)
-    } catch (err: any) {
-      setError(err.message || '上传文件失败')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '上传文件失败')
     } finally {
       setUploading(false)
     }
@@ -161,6 +181,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (fetchingMeta || uploading || submitting) return
     setError('')
     setSuccess(false)
 
@@ -175,7 +196,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
     // 解析标签
     const tags = tagsInput
-      .split(/[,，、\s]+/)
+      .split(/[,，、;；\n]+/)
       .map((t) => t.trim())
       .filter(Boolean)
 
@@ -216,8 +237,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         router.push('/admin/projects')
         router.refresh()
       }, 800)
-    } catch (err: any) {
-      setError(err.message || '提交异常，请稍后重试')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '提交异常，请稍后重试')
     } finally {
       setSubmitting(false)
     }
@@ -266,7 +287,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           <button
             type="submit"
             form="project-form"
-            disabled={submitting}
+            disabled={submitting || fetchingMeta || uploading}
             className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-xs sm:text-sm font-semibold shadow-soft hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
@@ -279,6 +300,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         <div className="mb-6 p-4 rounded-card bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 flex items-center gap-2.5 text-xs text-red-600 dark:text-red-400">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {metaMessage && (
+        <div role="status" className="mb-6 p-4 rounded-card bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-700 dark:text-emerald-400">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{metaMessage}</span>
         </div>
       )}
 
@@ -319,12 +347,12 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               </label>
               <button
                 type="button"
-                onClick={handleFetchMeta}
-                disabled={fetchingMeta}
+                onClick={() => handleFetchMeta(url)}
+                disabled={fetchingMeta || submitting || uploading}
                 className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-2 hover:underline cursor-pointer disabled:opacity-50"
               >
                 <Sparkles className="w-3 h-3" />
-                <span>{fetchingMeta ? '正在智能解析网页...' : '🪄 智能提取网页标题与简介'}</span>
+                <span>{fetchingMeta ? '正在读取项目信息...' : '🪄 智能提取项目信息'}</span>
               </button>
             </div>
             <div className="relative">
@@ -332,6 +360,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               <input
                 type="url"
                 value={url}
+                disabled={fetchingMeta}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://demo.example.com 或任意可访问的 Web 链接"
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
@@ -409,6 +438,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               <input
                 type="text"
                 value={cover}
+                disabled={fetchingMeta}
                 onChange={(e) => setCover(e.target.value)}
                 placeholder="输入外部图片 URL (如 Unsplash/CDN) 或点击右侧本地上传..."
                 className="min-w-0 flex-1 px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
@@ -423,7 +453,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                disabled={uploading || fetchingMeta || submitting}
                 className="px-4 py-2.5 rounded-btn border border-line hover:bg-subtle text-xs font-medium text-ink-2 flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 <Upload className="w-3.5 h-3.5" />
@@ -491,11 +521,12 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             {/* 技术标签 */}
             <div>
               <label className="block text-xs font-medium text-ink-2 mb-1.5">
-                技术/能力标签（以逗号或空格分隔）
+                技术/能力标签（以逗号分隔）
               </label>
               <input
                 type="text"
                 value={tagsInput}
+                aria-label="技术与能力标签"
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="例如：React, Three.js, AI, Canvas"
                 className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
@@ -510,6 +541,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
               <input
                 type="text"
                 value={completedAt}
+                aria-label="完成年月"
                 onChange={(e) => setCompletedAt(e.target.value)}
                 placeholder="例如：2026-09"
                 className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono"
@@ -533,12 +565,25 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
             {/* 源码链接 */}
             <div>
-              <label className="block text-xs font-medium text-ink-2 mb-1.5">
-                源码 GitHub URL（可选）
-              </label>
+              <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                <label className="block text-xs font-medium text-ink-2">
+                  源码 GitHub URL（可选）
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleFetchMeta(sourceUrl)}
+                  disabled={fetchingMeta || submitting || uploading || !sourceUrl.trim()}
+                  className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-2 transition-colors hover:text-ink hover:underline disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <GitBranch className="h-3.5 w-3.5" />
+                  <span>{fetchingMeta ? '读取中...' : '自动填写标签与扩展字段'}</span>
+                </button>
+              </div>
               <input
                 type="url"
                 value={sourceUrl}
+                disabled={fetchingMeta}
+                aria-label="源码 GitHub URL"
                 onChange={(e) => setSourceUrl(e.target.value)}
                 placeholder="https://github.com/username/repo"
                 className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
@@ -554,6 +599,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <textarea
               rows={3}
               value={description}
+              aria-label="深度技术说明"
               onChange={(e) => setDescription(e.target.value)}
               placeholder="记录开发过程中的架构设计、攻克的技术挑战或核心收益..."
               className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
@@ -572,7 +618,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || fetchingMeta || uploading}
             className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-sm font-bold shadow-card hover:shadow-lift active:scale-98 transition-all cursor-pointer disabled:opacity-50 min-w-[200px]"
           >
             <Save className="w-4 h-4" />

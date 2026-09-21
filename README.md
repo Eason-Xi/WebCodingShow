@@ -92,6 +92,9 @@ npm run dev
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob 图片存储读写凭证 |
 | `ADMIN_PASSWORD` | 独立的管理员密码，至少 12 位 |
 | `JWT_SECRET` | 随机会话签名密钥，至少 32 位 |
+| `GITHUB_TOKEN`（可选） | 服务端 GitHub 访问凭证，提高仓库读取限额；读取私有仓库需要相应权限 |
+
+录入作品时，在“线上 URL”填入 GitHub 仓库地址并点击“智能提取项目信息”，或在“源码 GitHub URL”旁点击“自动填写标签与扩展字段”。系统合并仓库 Topics、主要语言与 README 中识别到的技术为标签，并用 README、仓库简介和语言统计补充技术说明。标签以逗号分隔，可保留 `Tailwind CSS` 等带空格的名称。完成年月取仓库最近推送月份作为建议，可手动修改；排序权重由管理员设置。API 限流时会尝试读取公开仓库页面，无法获取的完成年月留空。其余已填写字段会保留，导入结果需检查后再发布。
 
 `vercel.json` 使用 `npm run vercel-build`，依次检查配置、生成 Prisma Client、应用 PostgreSQL 迁移并构建应用，不会自动写入演示数据。
 
