@@ -1,0 +1,99 @@
+/* Keep mobile adjustments scoped to the administration area. */
+.admin-shell {
+  overflow-wrap: anywhere;
+}
+
+.admin-shell :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (width < 64rem) {
+  /* 16px inputs prevent automatic input zoom in iOS Safari. */
+  .admin-shell :is(input, select, textarea) {
+    font-size: 16px;
+  }
+
+  .admin-shell :is(button, input:not([type="file"]), select) {
+    min-height: 44px;
+  }
+
+  .admin-shell button:has(> svg:only-child) {
+    min-width: 44px;
+  }
+
+  .admin-responsive-table,
+  .admin-responsive-table tbody {
+    display: block;
+    width: 100%;
+  }
+
+  /* Preserve column headers for assistive technology. */
+  .admin-responsive-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .admin-responsive-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .admin-responsive-table tbody td {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    white-space: normal;
+  }
+
+  .admin-responsive-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--c-ink-3);
+    font: 12px var(--font-geist-sans), sans-serif;
+  }
+
+  .admin-responsive-table td[colspan],
+  .admin-project-table .admin-project-identity,
+  .admin-responsive-table td[data-label="操作"] {
+    grid-column: 1 / -1;
+  }
+
+  .admin-responsive-table td[colspan] {
+    justify-content: center;
+    padding-block: 24px;
+  }
+
+  .admin-responsive-table td[data-label="操作"] {
+    justify-content: space-between;
+    border-top: 1px solid var(--c-line);
+    padding-top: 12px;
+  }
+
+  .admin-responsive-table td[data-label="操作"] :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    background: var(--c-subtle);
+  }
+
+  .admin-category-table tbody tr {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-category-table td[data-label]:not([data-label="操作"]) {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+}

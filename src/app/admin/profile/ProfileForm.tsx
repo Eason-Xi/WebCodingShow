@@ -113,7 +113,7 @@ export function ProfileForm() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-3xl w-full">
+    <div className="p-4 sm:p-6 xl:p-10 max-w-3xl w-full">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-ink">
           个人资料与名片
@@ -138,13 +138,13 @@ export function ProfileForm() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+        <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           {/* 头像 */}
           <div>
             <label className="block text-xs font-medium text-ink-2 mb-2">
               个人头像
             </label>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <div className="w-16 h-16 rounded-full overflow-hidden bg-subtle border border-line shrink-0">
                 {avatar ? (
                   <img src={avatar} alt="" className="w-full h-full object-cover" />
@@ -154,7 +154,7 @@ export function ProfileForm() {
                   </div>
                 )}
               </div>
-              <div className="flex-1">
+              <div className="w-full min-w-0 flex-1">
                 <input
                   type="text"
                   value={avatar}
@@ -227,7 +227,7 @@ export function ProfileForm() {
         </div>
 
         {/* 社交联系外链 */}
-        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-4">
+        <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-4">
           <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             社交与联系外链（展示于页脚与前台）
           </h2>
@@ -276,7 +276,7 @@ export function ProfileForm() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-btn bg-brand text-brand-ink text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-soft cursor-pointer disabled:opacity-50"
+            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-2.5 rounded-btn bg-brand text-brand-ink text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-soft cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? '保存中...' : '保存资料'}</span>

@@ -9,15 +9,15 @@ export function AdminLayoutShell({ children }: { children: React.ReactNode }) {
 
   // 登录页不渲染后台侧边栏
   if (pathname === '/admin/login') {
-    return <>{children}</>
+    return <div className="admin-shell">{children}</div>
   }
 
   return (
-    <div className="flex min-h-screen bg-subtle text-ink">
-      <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+    <div className="admin-shell flex min-h-dvh flex-col bg-subtle text-ink lg:flex-row">
+      <AdminSidebar key={pathname} />
+      <main className="min-w-0 flex-1">
         {children}
-      </div>
+      </main>
     </div>
   )
 }

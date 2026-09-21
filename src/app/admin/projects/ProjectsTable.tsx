@@ -11,9 +11,6 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  Check,
-  X,
   AlertTriangle,
 } from 'lucide-react'
 
@@ -147,7 +144,7 @@ export function ProjectsTable() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-6xl w-full">
+    <div className="p-4 sm:p-6 xl:p-10 max-w-6xl w-full">
       {/* 头部与创建按钮 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
@@ -174,6 +171,7 @@ export function ProjectsTable() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
           <input
             type="text"
+            aria-label="搜索项目名或 URL"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
@@ -186,6 +184,7 @@ export function ProjectsTable() {
 
         <div>
           <select
+            aria-label="按分类筛选"
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value)
@@ -204,6 +203,7 @@ export function ProjectsTable() {
 
         <div>
           <select
+            aria-label="按发布状态筛选"
             value={selectedStatus}
             onChange={(e) => {
               setSelectedStatus(e.target.value)
@@ -221,10 +221,11 @@ export function ProjectsTable() {
       {/* 表格主体 */}
       <div className="rounded-card border border-line bg-surface overflow-hidden shadow-soft">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="admin-responsive-table admin-project-table w-full text-left border-collapse"
+            aria-label="项目列表">
             <thead>
               <tr className="border-b border-line bg-subtle text-[12px] font-medium text-ink-3">
-                <th className="py-3.5 px-4 sm:px-6">项目</th>
+                <th className="admin-project-identity py-3.5 px-4 sm:px-6">项目</th>
                 <th className="py-3.5 px-4">分类</th>
                 <th className="py-3.5 px-4">状态</th>
                 <th className="py-3.5 px-4">精选</th>
@@ -246,8 +247,8 @@ export function ProjectsTable() {
                     className="hover:bg-subtle transition-colors"
                   >
                     {/* 项目封面与标题 */}
-                    <td className="py-3.5 px-4 sm:px-6">
-                      <div className="flex items-center gap-3">
+                    <td className="admin-project-identity py-3.5 px-4 sm:px-6">
+                      <div className="flex min-w-0 items-center gap-3">
                         {item.cover ? (
                           <img
                             src={item.cover}
@@ -259,7 +260,7 @@ export function ProjectsTable() {
                             无图
                           </div>
                         )}
-                        <div className="min-w-0 max-w-xs">
+                        <div className="min-w-0 flex-1 lg:max-w-xs">
                           <p className="font-medium text-ink truncate">
                             {item.title}
                           </p>
@@ -267,9 +268,9 @@ export function ProjectsTable() {
                             href={item.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-ink-3 hover:underline truncate max-w-[200px]"
+                            className="inline-flex items-center gap-1 text-xs text-ink-3 hover:underline max-w-full lg:max-w-[200px]"
                           >
-                            <span>{item.url}</span>
+                            <span className="min-w-0 truncate">{item.url}</span>
                             <ExternalLink className="w-3 h-3 shrink-0" />
                           </a>
                         </div>
@@ -277,12 +278,12 @@ export function ProjectsTable() {
                     </td>
 
                     {/* 分类 */}
-                    <td className="py-3.5 px-4 text-ink-2 whitespace-nowrap">
+                    <td data-label="分类" className="py-3.5 px-4 text-ink-2 whitespace-nowrap">
                       {item.category?.name || '-'}
                     </td>
 
                     {/* 状态切换 */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td data-label="状态" className="py-3.5 px-4 whitespace-nowrap">
                       <button
                         onClick={() => toggleStatus(item)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors ${
@@ -302,9 +303,10 @@ export function ProjectsTable() {
                     </td>
 
                     {/* 精选切换 */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td data-label="精选" className="py-3.5 px-4 whitespace-nowrap">
                       <button
                         onClick={() => toggleFeatured(item)}
+                        aria-pressed={item.featured}
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                           item.featured
                             ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100'
@@ -317,12 +319,12 @@ export function ProjectsTable() {
                     </td>
 
                     {/* 权重 */}
-                    <td className="py-3.5 px-4 font-mono text-xs text-ink-2">
+                    <td data-label="权重" className="py-3.5 px-4 font-mono text-xs text-ink-2">
                       {item.sortOrder}
                     </td>
 
                     {/* 操作按钮 */}
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td data-label="操作" className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
                         <Link
                           href={`/admin/projects/${item.id}/edit`}
@@ -354,7 +356,7 @@ export function ProjectsTable() {
         </div>
 
         {/* 分页底栏 */}
-        <div className="p-4 border-t border-line flex items-center justify-between text-xs text-ink-3">
+        <div className="p-4 border-t border-line flex flex-wrap gap-3 items-center justify-between text-xs text-ink-3">
           <span>
             共 <strong className="text-ink">{total}</strong> 条记录
           </span>
@@ -362,6 +364,7 @@ export function ProjectsTable() {
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
               <button
+                aria-label="上一页"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="p-1.5 rounded-lg border border-line disabled:opacity-40 disabled:pointer-events-none hover:bg-subtle transition-colors"
@@ -372,6 +375,7 @@ export function ProjectsTable() {
                 {page} / {totalPages}
               </span>
               <button
+                aria-label="下一页"
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="p-1.5 rounded-lg border border-line disabled:opacity-40 disabled:pointer-events-none hover:bg-subtle transition-colors"
@@ -386,7 +390,8 @@ export function ProjectsTable() {
       {/* 删除防误触弹窗 */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-card bg-surface border border-line p-6 shadow-panel space-y-4">
+          <div role="dialog" aria-modal="true" aria-label="确认删除此项目"
+            className="max-h-[calc(100dvh-2rem)] overflow-y-auto break-words w-full max-w-sm rounded-card bg-surface border border-line p-6 shadow-panel space-y-4">
             <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center">
               <AlertTriangle className="w-5 h-5" />
             </div>

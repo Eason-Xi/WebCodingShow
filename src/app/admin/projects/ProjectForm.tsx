@@ -224,18 +224,19 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full">
+    <div className="p-4 sm:p-6 xl:p-10 max-w-4xl w-full">
       {/* 顶部返回与标题 */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/admin/projects"
-            className="p-2 rounded-btn border border-line text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
+            aria-label="返回项目列表"
+            className="grid h-11 w-11 shrink-0 place-items-center p-2 rounded-btn border border-line text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-ink">
+            <h1 className="text-xl sm:text-2xl font-bold text-ink">
               {isEdit ? '编辑项目作品' : '录入新 Web 作品'}
             </h1>
             <p className="text-xs text-ink-3 mt-0.5">
@@ -245,30 +246,28 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 顶部操作区 */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           {/* 快速精选开关徽章 */}
           <button
             type="button"
             onClick={() => setFeatured(!featured)}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-btn text-xs font-medium cursor-pointer transition-all ${
+            aria-pressed={featured}
+            className={`inline-flex min-h-11 items-center gap-1.5 px-3 py-2 rounded-btn text-xs font-medium cursor-pointer transition-all ${
               featured
                 ? 'bg-amber-500 text-white shadow-soft'
                 : 'bg-subtle text-ink-2 hover:bg-muted'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{featured ? '已设为首页精选' : '设为首页精选'}</span>
+            <span className="inline">{featured ? '已设为首页精选' : '设为首页精选'}</span>
           </button>
 
           {/* 顶部主保存按钮 */}
           <button
-            type="button"
-            onClick={(e) => {
-              const form = document.querySelector('form')
-              if (form) form.requestSubmit()
-            }}
+            type="submit"
+            form="project-form"
             disabled={submitting}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-xs sm:text-sm font-semibold shadow-soft hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+            className="inline-flex min-h-11 items-center justify-center gap-2 px-4 py-2 rounded-btn bg-brand hover:bg-brand-hover text-brand-ink text-xs sm:text-sm font-semibold shadow-soft hover:shadow active:scale-95 transition-all cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
             <span>{submitting ? '保存中...' : isEdit ? '更新项目' : '立即发布作品'}</span>
@@ -290,9 +289,9 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form id="project-form" onSubmit={handleSubmit} className="space-y-6">
         {/* 基础信息卡片 */}
-        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+        <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             必填核心参数
           </h2>
@@ -314,7 +313,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
           {/* 线上跳转 URL */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-1.5">
               <label className="block text-xs font-medium text-ink-2">
                 线上 URL（核心体验地址） <span className="text-red-500">*</span>
               </label>
@@ -397,7 +396,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 封面与展示效果 */}
-        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+        <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             封面视觉与呈现
           </h2>
@@ -406,13 +405,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <label className="block text-xs font-medium text-ink-2 mb-1.5">
               封面图片 URL 或本地上传
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <input
                 type="text"
                 value={cover}
                 onChange={(e) => setCover(e.target.value)}
                 placeholder="输入外部图片 URL (如 Unsplash/CDN) 或点击右侧本地上传..."
-                className="flex-1 px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
+                className="min-w-0 flex-1 px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-xs font-mono focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               />
               <input
                 type="file"
@@ -434,7 +433,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
             {/* 实时封面预览 */}
             {(localPreview || cover) && (
-              <div className="mt-3 relative w-64 aspect-[16/10] rounded-btn overflow-hidden border border-line-strong bg-subtle shadow-soft">
+              <div className="mt-3 relative w-full max-w-64 aspect-[16/10] rounded-btn overflow-hidden border border-line-strong bg-subtle shadow-soft">
                 {!imageError ? (
                   <img
                     src={localPreview || cover}
@@ -483,7 +482,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         </div>
 
         {/* 标签、排序与补充信息 */}
-        <div className="p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
+        <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
             标签与扩展字段
           </h2>

@@ -43,7 +43,7 @@ export default async function AdminDashboardPage() {
   ]
 
   return (
-    <div className="w-full max-w-6xl p-6 sm:p-10">
+    <div className="w-full max-w-6xl p-4 sm:p-6 xl:p-10">
       {/* 头部 */}
       <div className="mb-9 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -53,7 +53,7 @@ export default async function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <Link
             href="/admin/projects/new"
             className="inline-flex items-center gap-2 rounded-btn bg-brand px-4 py-2.5 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
@@ -73,15 +73,15 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* 指标卡 */}
-      <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-5">
+      <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         {stats.map((item) => {
           const Icon = item.icon
           return (
             <div
               key={item.label}
-              className="rounded-card border border-line bg-surface p-5 shadow-soft"
+              className="rounded-card border border-line bg-surface p-3 sm:p-5 shadow-soft"
             >
-              <div className="mb-3.5 flex items-center justify-between">
+              <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[12.5px] font-medium text-ink-3">{item.label}</span>
                 <span className="grid h-7 w-7 place-items-center rounded-chip bg-subtle text-ink-3">
                   <Icon className="h-[15px] w-[15px]" strokeWidth={2} />
@@ -98,7 +98,7 @@ export default async function AdminDashboardPage() {
 
       {/* 最近动态 */}
       <div className="overflow-hidden rounded-card border border-line bg-surface shadow-soft">
-        <div className="flex items-center justify-between border-b border-line p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4 sm:p-6">
           <div>
             <h2 className="text-[15px] font-semibold text-ink">最近动态项目</h2>
             <p className="mt-1 text-[12px] text-ink-3">最近新增或编辑的作品记录</p>
@@ -121,7 +121,7 @@ export default async function AdminDashboardPage() {
               key={project.id}
               className="flex items-center justify-between gap-4 p-4 transition-colors duration-200 hover:bg-subtle sm:px-6"
             >
-              <div className="flex min-w-0 items-center gap-3.5">
+              <div className="flex min-w-0 flex-1 items-center gap-3.5">
                 {project.cover ? (
                   <img
                     src={project.cover}
@@ -134,9 +134,9 @@ export default async function AdminDashboardPage() {
                   </div>
                 )}
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h4 className="truncate text-[13.5px] font-medium text-ink">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="w-full sm:w-auto truncate text-[13.5px] font-medium text-ink">
                       {project.title}
                     </h4>
                     {project.featured && (
@@ -156,7 +156,7 @@ export default async function AdminDashboardPage() {
                   </div>
 
                   <div className="mt-1 flex items-center gap-2 text-[11.5px] text-ink-4">
-                    <span className="shrink-0">{project.category.name}</span>
+                    <span className="max-w-24 truncate">{project.category.name}</span>
                     <span aria-hidden>·</span>
                     <a
                       href={project.url}
@@ -172,7 +172,7 @@ export default async function AdminDashboardPage() {
 
               <Link
                 href={`/admin/projects/${project.id}/edit`}
-                className="shrink-0 rounded-btn border border-line-strong px-3 py-1.5 text-[12px] font-medium text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink"
+                className="inline-flex min-h-11 items-center shrink-0 rounded-btn border border-line-strong px-3 py-1.5 text-[12px] font-medium text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink"
               >
                 编辑
               </Link>

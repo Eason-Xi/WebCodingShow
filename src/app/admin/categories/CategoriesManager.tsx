@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Save, X, Layers, AlertCircle } from 'lucide-react'
+import { Plus, Edit2, Trash2, Save, X, AlertCircle } from 'lucide-react'
 
 interface CategoryItem {
   id: string
@@ -127,7 +127,7 @@ export function CategoriesManager() {
   }
 
   return (
-    <div className="p-6 sm:p-10 max-w-4xl w-full">
+    <div className="p-4 sm:p-6 xl:p-10 max-w-4xl w-full">
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-ink">
           分类管理
@@ -145,13 +145,13 @@ export function CategoriesManager() {
       )}
 
       {/* 新增分类框 */}
-      <div className="p-6 rounded-card bg-surface border border-line shadow-soft mb-8">
+      <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft mb-8">
         <h2 className="text-sm font-semibold text-ink mb-4 flex items-center gap-2">
           <Plus className="w-4 h-4" />
           <span>添加新分类</span>
         </h2>
 
-        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+        <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 items-end">
           <div className="sm:col-span-1">
             <label className="block text-xs text-ink-3 mb-1">分类名 *</label>
             <input
@@ -200,7 +200,7 @@ export function CategoriesManager() {
 
       {/* 分类列表 */}
       <div className="rounded-card border border-line bg-surface overflow-hidden shadow-soft">
-        <table className="w-full text-left border-collapse">
+        <table className="admin-responsive-table admin-category-table w-full text-left border-collapse" aria-label="分类列表">
           <thead>
             <tr className="border-b border-line bg-subtle text-[12px] font-medium text-ink-3">
               <th className="py-3 px-6">分类名</th>
@@ -222,37 +222,40 @@ export function CategoriesManager() {
 
               return (
                 <tr key={cat.id} className="hover:bg-subtle">
-                  <td className="py-3.5 px-6 font-medium text-ink">
+                  <td data-label="分类名" className="py-3.5 px-6 font-medium text-ink">
                     {isEditing ? (
                       <input
                         type="text"
+                        aria-label="分类名称"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="px-2 py-1 rounded border border-line-strong bg-surface text-xs"
+                        className="w-full min-w-0 px-2 py-1 rounded border border-line-strong bg-surface text-xs"
                       />
                     ) : (
                       cat.name
                     )}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-ink-3">
+                  <td data-label="Slug" className="py-3.5 px-4 font-mono text-ink-3">
                     {isEditing ? (
                       <input
                         type="text"
+                        aria-label="分类别名"
                         value={editSlug}
                         onChange={(e) => setEditSlug(e.target.value)}
-                        className="px-2 py-1 rounded border border-line-strong bg-surface text-xs font-mono"
+                        className="w-full min-w-0 px-2 py-1 rounded border border-line-strong bg-surface text-xs font-mono"
                       />
                     ) : (
                       cat.slug
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-ink-2">
+                  <td data-label="关联项目" className="py-3.5 px-4 text-ink-2">
                     {cat._count?.projects ?? 0} 个
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-ink-2">
+                  <td data-label="排序权重" className="py-3.5 px-4 font-mono text-ink-2">
                     {isEditing ? (
                       <input
                         type="number"
+                        aria-label="排序权重"
                         value={editOrder}
                         onChange={(e) => setEditOrder(parseInt(e.target.value, 10) || 0)}
                         className="w-16 px-2 py-1 rounded border border-line-strong bg-surface text-xs font-mono"
@@ -261,7 +264,7 @@ export function CategoriesManager() {
                       cat.sortOrder
                     )}
                   </td>
-                  <td className="py-3.5 px-6 text-right">
+                  <td data-label="操作" className="py-3.5 px-6 text-right">
                     {isEditing ? (
                       <div className="inline-flex items-center gap-1.5">
                         <button

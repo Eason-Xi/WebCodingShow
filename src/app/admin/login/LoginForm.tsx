@@ -47,7 +47,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-[400px] rounded-panel border border-line bg-surface p-8 shadow-panel">
+    <div className="w-full max-w-[400px] rounded-panel border border-line bg-surface p-5 sm:p-8 shadow-panel">
       <div className="mb-8 text-center">
         <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-[14px] bg-brand text-brand-ink shadow-soft">
           <ShieldCheck className="h-[22px] w-[22px]" strokeWidth={2} />
@@ -85,13 +85,13 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="请输入管理员密码..."
               className="w-full rounded-btn border border-line-strong bg-subtle py-3 pl-10 pr-11 text-[13.5px] text-ink transition-colors duration-200 placeholder:text-ink-4 focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
-              autoFocus
+              autoComplete="current-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? '隐藏密码' : '显示密码'}
-              className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-chip text-ink-4 transition-colors duration-200 hover:bg-muted hover:text-ink-2"
+              className="absolute right-1 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-chip text-ink-4 transition-colors duration-200 hover:bg-muted hover:text-ink-2"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
