@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs'
 import { createHmac } from 'node:crypto'
 import { createSessionToken, verifySessionToken, checkAdminPassword } from '../src/lib/auth'
 import { validateImage, MAX_IMAGE_BYTES } from '../src/lib/upload-policy'
+import { normalizeAvatar, ProfileValidationError } from '../src/lib/profile'
 
 test('session signatures reject tampering, expiry, extra segments and missing secrets', async () => {
   process.env.JWT_SECRET = 'test-only-random-secret-with-at-least-32-characters'
@@ -39,6 +40,17 @@ test('uploads reject executable SVGs, unknown types, empty and oversized files',
   assert.ok(validateImage({ type: 'image/png', size: 0 }))
   assert.ok(validateImage({ type: 'image/png', size: MAX_IMAGE_BYTES + 1 }))
   assert.equal(validateImage({ type: 'image/png', size: MAX_IMAGE_BYTES }), null)
+})
+
+test('profile rejects browser-local avatar URLs', () => {
+  assert.equal(normalizeAvatar(undefined), undefined)
+  assert.equal(normalizeAvatar(''), null)
+  assert.equal(normalizeAvatar('/api/uploads/avatar.png'), '/api/uploads/avatar.png')
+  assert.equal(normalizeAvatar('https://example.com/avatar.png'), 'https://example.com/avatar.png')
+  assert.throws(
+    () => normalizeAvatar('blob:https://example.com/browser-session-id'),
+    ProfileValidationError,
+  )
 })
 
 test('SQLite and PostgreSQL models remain identical', () => {

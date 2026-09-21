@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { User, Save, Upload, CheckCircle2, AlertCircle, Sparkles } from 'lucide-react'
+import { User, Save, Upload, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export function ProfileForm() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -10,6 +10,7 @@ export function ProfileForm() {
   const [title, setTitle] = useState('')
   const [bio, setBio] = useState('')
   const [avatar, setAvatar] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
   const [xUrl, setXUrl] = useState('')
   const [email, setEmail] = useState('')
@@ -17,7 +18,7 @@ export function ProfileForm() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -46,11 +47,12 @@ export function ProfileForm() {
       setError('请上传 4 MB 以内的 PNG、JPEG、WebP 或 GIF 图片')
       return
     }
-    // 0 毫秒即时预览
+    // 本地预览只用于展示，不能写入数据库。
     const objectUrl = URL.createObjectURL(file)
-    setAvatar(objectUrl)
+    setAvatarPreview(objectUrl)
     setUploading(true)
     setError('')
+    setSuccessMessage('')
 
     try {
       const formData = new FormData()
@@ -63,11 +65,24 @@ export function ProfileForm() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '头像上传失败')
 
-      setAvatar(data.url)
-    } catch (err: any) {
-      setError(err.message)
+      const saveRes = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: data.url }),
+      })
+      const savedProfile = await saveRes.json()
+      if (!saveRes.ok) throw new Error(savedProfile.error || '头像保存失败')
+
+      setAvatar(savedProfile.avatar || data.url)
+      setAvatarPreview('')
+      setSuccessMessage('头像已上传并保存，换台设备也能正常显示。')
+    } catch (err: unknown) {
+      setAvatarPreview('')
+      setError(err instanceof Error ? err.message : '头像上传失败')
     } finally {
+      URL.revokeObjectURL(objectUrl)
       setUploading(false)
+      e.target.value = ''
     }
   }
 
@@ -75,7 +90,7 @@ export function ProfileForm() {
     e.preventDefault()
     setSaving(true)
     setError('')
-    setSuccess(false)
+    setSuccessMessage('')
 
     try {
       const res = await fetch('/api/profile', {
@@ -95,10 +110,10 @@ export function ProfileForm() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || '保存资料失败')
 
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
-    } catch (err: any) {
-      setError(err.message)
+      setSuccessMessage('个人资料已更新，前台首页已即时生效。')
+      setTimeout(() => setSuccessMessage(''), 3000)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '保存资料失败')
     } finally {
       setSaving(false)
     }
@@ -130,10 +145,10 @@ export function ProfileForm() {
         </div>
       )}
 
-      {success && (
+      {successMessage && (
         <div className="mb-6 p-4 rounded-card bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>个人资料已更新，前台首页已即时生效！</span>
+          <span>{successMessage}</span>
         </div>
       )}
 
@@ -146,8 +161,9 @@ export function ProfileForm() {
             </label>
             <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
               <div className="w-16 h-16 rounded-full overflow-hidden bg-subtle border border-line shrink-0">
-                {avatar ? (
-                  <img src={avatar} alt="" className="w-full h-full object-cover" />
+                {avatarPreview || avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- The preview accepts browser-local blob URLs before upload completes.
+                  <img src={avatarPreview || avatar} alt="个人头像预览" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-ink-3">
                     <User className="w-6 h-6" />
@@ -159,6 +175,7 @@ export function ProfileForm() {
                   type="text"
                   value={avatar}
                   onChange={(e) => setAvatar(e.target.value)}
+                  disabled={uploading}
                   placeholder="输入头像图片 URL..."
                   className="w-full px-3 py-2 rounded-btn border border-line-strong bg-subtle text-xs font-mono mb-2"
                 />
@@ -275,11 +292,11 @@ export function ProfileForm() {
         <div className="flex justify-end">
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || uploading}
             className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-2.5 rounded-btn bg-brand text-brand-ink text-sm font-medium hover:opacity-90 active:scale-98 transition-all shadow-soft cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? '保存中...' : '保存资料'}</span>
+            <span>{uploading ? '头像上传中...' : saving ? '保存中...' : '保存资料'}</span>
           </button>
         </div>
       </form>

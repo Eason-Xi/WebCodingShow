@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
+import { normalizeAvatar, ProfileValidationError } from '@/lib/profile'
 
 export async function GET() {
   try {
@@ -20,7 +21,7 @@ export async function GET() {
     }
 
     return NextResponse.json(profile)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: '获取个人资料失败' }, { status: 500 })
   }
 }
@@ -34,6 +35,7 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json()
     const { name, title, bio, avatar, githubUrl, xUrl, email } = body
+    const normalizedAvatar = normalizeAvatar(avatar)
 
     const profile = await prisma.profile.upsert({
       where: { id: 'default' },
@@ -41,7 +43,7 @@ export async function PUT(req: NextRequest) {
         name: name !== undefined ? name.trim() : undefined,
         title: title !== undefined ? title.trim() : undefined,
         bio: bio !== undefined ? bio.trim() : undefined,
-        avatar: avatar !== undefined ? (avatar ? avatar.trim() : null) : undefined,
+        avatar: normalizedAvatar,
         githubUrl: githubUrl !== undefined ? (githubUrl ? githubUrl.trim() : null) : undefined,
         xUrl: xUrl !== undefined ? (xUrl ? xUrl.trim() : null) : undefined,
         email: email !== undefined ? (email ? email.trim() : null) : undefined,
@@ -51,7 +53,7 @@ export async function PUT(req: NextRequest) {
         name: name || 'Web 独立创作者',
         title: title || 'Full-Stack Developer',
         bio: bio || '',
-        avatar: avatar || null,
+        avatar: normalizedAvatar ?? null,
         githubUrl: githubUrl || null,
         xUrl: xUrl || null,
         email: email || null,
@@ -60,6 +62,8 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(profile)
   } catch (error) {
-    return NextResponse.json({ error: '更新个人资料失败' }, { status: 500 })
+    const message = error instanceof Error ? error.message : '更新个人资料失败'
+    const status = error instanceof ProfileValidationError ? 400 : 500
+    return NextResponse.json({ error: message }, { status })
   }
 }
