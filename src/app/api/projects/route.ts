@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import type { Prisma } from '@prisma/client'
+import { normalizeProjectImages } from '@/lib/project-images'
 
 export async function GET(req: NextRequest) {
   try {
@@ -92,6 +93,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
+    let images: string[]
+    try { images = normalizeProjectImages(body.images ?? []) } catch (error) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 })
+    }
     const {
       title,
       url,
@@ -173,6 +178,7 @@ export async function POST(req: NextRequest) {
         slug,
         url: url.trim(),
         cover: cover ? cover.trim() : null,
+        images: JSON.stringify(images),
         summary: summary.trim(),
         description: description ? description.trim() : null,
         categoryId,

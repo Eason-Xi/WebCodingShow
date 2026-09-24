@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { readProjectImages } from '@/lib/project-images'
+import { ProjectImagesEditor } from './ProjectImagesEditor'
 import {
   ArrowLeft,
   Upload,
@@ -25,6 +27,7 @@ interface ProjectData {
   url?: string
   summary?: string
   cover?: string | null
+  images?: string | null
   categoryId?: string
   tags?: { name: string }[] | string[]
   status?: string
@@ -52,6 +55,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [url, setUrl] = useState(initialData?.url || '')
   const [summary, setSummary] = useState(initialData?.summary || '')
   const [cover, setCover] = useState(initialData?.cover || '')
+  const [images, setImages] = useState(() => readProjectImages(initialData?.images))
+  const [galleryUploading, setGalleryUploading] = useState(false)
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '')
   const [tagsInput, setTagsInput] = useState(() =>
     (initialData?.tags || []).map((tag) => typeof tag === 'string' ? tag : tag.name).join(', ')
@@ -65,7 +70,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
   const [localPreview, setLocalPreview] = useState('')
   const [imageError, setImageError] = useState(false)
-  const [uploading, setUploading] = useState(false)
+  const [coverUploading, setUploading] = useState(false)
+  const uploading = coverUploading || galleryUploading
   const [fetchingMeta, setFetchingMeta] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -207,6 +213,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       url,
       summary,
       cover,
+      images,
       categoryId,
       tags,
       status,
@@ -511,6 +518,8 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </div>
         </div>
 
+        <ProjectImagesEditor images={images} onChange={setImages} onBusyChange={setGalleryUploading} disabled={submitting || fetchingMeta || coverUploading} />
+
         {/* 标签、排序与补充信息 */}
         <div className="p-4 sm:p-6 rounded-card bg-surface border border-line shadow-soft space-y-5">
           <h2 className="text-sm font-semibold text-ink border-b border-line pb-3">
@@ -594,14 +603,14 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           {/* 详情说明 */}
           <div>
             <label className="block text-xs font-medium text-ink-2 mb-1.5">
-              深度技术说明 / 难点与成果（选填）
+              作品详情 / 技术说明 / 难点与成果（选填）
             </label>
             <textarea
-              rows={3}
+              rows={10}
               value={description}
-              aria-label="深度技术说明"
+              aria-label="作品详情"
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="记录开发过程中的架构设计、攻克的技术挑战或核心收益..."
+              placeholder="介绍作品的功能、使用方式、架构设计、技术难点与成果。支持分段换行，保存后显示在前台作品详情页。"
               className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
             />
           </div>

@@ -14,13 +14,13 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-line bg-canvas/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-8">
         {/* 品牌 */}
-        <Link href="/" className="group flex shrink-0 items-center gap-2.5">
+        <Link href="/" aria-label="WebCoding 首页" className="group flex shrink-0 items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-brand text-brand-ink shadow-soft transition-transform duration-300 group-hover:scale-[1.05]">
             <Code2 className="h-[18px] w-[18px]" strokeWidth={2.2} />
           </span>
-          <span className="flex flex-col justify-center leading-none">
+          <span className="hidden flex-col justify-center leading-none min-[360px]:flex">
             <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">
               WebCoding
             </span>
@@ -31,14 +31,14 @@ export function Navbar() {
         </Link>
 
         {/* 导航 */}
-        <nav className="flex items-center gap-1">
+        <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           {links.map((link) => {
-            const isActive = pathname === link.href
+            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`))
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-btn px-3.5 py-2 text-[13.5px] font-medium transition-colors duration-200 ${
+                className={`whitespace-nowrap rounded-btn px-2 py-2 text-[13px] font-medium transition-colors duration-200 sm:px-3.5 sm:text-[13.5px] ${
                   isActive
                     ? 'bg-subtle text-ink'
                     : 'text-ink-2 hover:bg-subtle hover:text-ink'
@@ -49,10 +49,11 @@ export function Navbar() {
             )
           })}
 
-          <span className="mx-1.5 h-4 w-px bg-line-strong" aria-hidden />
+          <span className="mx-0.5 h-4 w-px bg-line-strong sm:mx-1.5" aria-hidden />
 
           <Link
             href="/admin/projects/new"
+            aria-label="录入新作品"
             className="flex shrink-0 items-center gap-1.5 rounded-btn bg-brand px-3 py-2 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.4} />

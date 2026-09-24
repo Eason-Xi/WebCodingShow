@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { put } from '@vercel/blob'
 import { randomUUID } from 'node:crypto'
+import { readProjectImages } from '../src/lib/project-images'
 
 loadEnvConfig(process.cwd())
 const prisma = new PrismaClient()
@@ -58,7 +59,10 @@ async function main() {
   }
   try {
     for (const profile of data.profiles) profile.avatar = await imageUrl(profile.avatar)
-    for (const project of data.projects) project.cover = await imageUrl(project.cover)
+    for (const project of data.projects) {
+      project.cover = await imageUrl(project.cover)
+      project.images = JSON.stringify(await Promise.all(readProjectImages(project.images).map(imageUrl)))
+    }
     await prisma.$transaction(async (tx) => {
       for (const profile of data.profiles) await tx.profile.create({ data: profile })
       for (const category of data.categories) await tx.category.create({ data: category })

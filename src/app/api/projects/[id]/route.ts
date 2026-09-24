@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import type { Prisma } from '@prisma/client'
+import { normalizeProjectImages } from '@/lib/project-images'
 
 export async function GET(
   req: NextRequest,
@@ -65,6 +66,11 @@ export async function PUT(
     } = body
 
     const updateData: Prisma.ProjectUpdateInput = {}
+    if (body.images !== undefined) {
+      try { updateData.images = JSON.stringify(normalizeProjectImages(body.images)) } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 400 })
+      }
+    }
 
     if (title !== undefined) updateData.title = title.trim()
     if (url !== undefined) {

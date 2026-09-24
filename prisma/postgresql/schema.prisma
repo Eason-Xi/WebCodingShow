@@ -45,6 +45,7 @@ model Project {
   slug        String   @unique
   url         String
   cover       String?
+  images      String    @default("[]")
   summary     String
   description String?
   categoryId  String

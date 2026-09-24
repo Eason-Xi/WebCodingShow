@@ -71,7 +71,7 @@ export default async function HomePage() {
                 精选代表作品
               </h2>
               <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
-                最具代表性的全栈工程与交互体验，点击“在线体验”直达真实项目。
+                点击作品查看完整介绍，点击图片放大浏览，或通过“在线体验”访问真实项目。
               </p>
             </div>
 
