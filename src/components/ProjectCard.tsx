@@ -95,21 +95,21 @@ export function ProjectCard({ project }: ProjectCardProps) {
         )}
 
         {/* 操作区 */}
-        <div className="relative z-10 mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-4">
-          <Link href={detailUrl} className="inline-flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-btn border border-line-strong px-3 py-2 text-sm text-ink-2 hover:bg-subtle">查看详情</Link>
+        <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 border-t border-line pt-4">
+          <Link href={detailUrl} className="inline-flex h-11 min-w-0 items-center justify-center whitespace-nowrap rounded-btn border border-line-strong px-2 text-sm text-ink-2 transition-colors hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2">查看详情</Link>
           <a
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-btn bg-brand px-4 py-2 text-[13.5px] font-medium text-brand-ink shadow-soft transition-all duration-200 hover:bg-brand-hover active:scale-[0.98]"
+            className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn bg-brand px-2 text-sm font-medium text-brand-ink shadow-soft transition-colors hover:bg-brand-hover focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             <span>在线体验</span>
-            <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.2} />
+            <ExternalLink className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
           </a>
 
           {videoUrl && (
-            <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className="inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn border border-line-strong px-3 py-2 text-sm text-ink-2 hover:bg-subtle">
-              <Play className="h-4 w-4" />观看视频
+            <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className={`inline-flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn bg-subtle px-2 text-sm text-ink-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 ${!project.sourceUrl ? 'col-span-2' : ''}`}>
+              <Play className="h-4 w-4 shrink-0" />观看视频
             </a>
           )}
           {project.sourceUrl && (
@@ -119,9 +119,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
               rel="noopener noreferrer"
               title="查看开源代码"
               aria-label="查看开源代码"
-              className="grid h-[38px] w-[38px] shrink-0 place-items-center rounded-btn border border-line-strong text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink"
+              className={`inline-flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn bg-subtle px-2 text-sm text-ink-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 ${!videoUrl ? 'col-span-2' : ''}`}
             >
-              <GithubIcon className="h-4 w-4" />
+              <GithubIcon className="h-4 w-4 shrink-0" />
+              <span>查看源码</span>
             </a>
           )}
         </div>
