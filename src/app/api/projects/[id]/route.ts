@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import type { Prisma } from '@prisma/client'
 import { normalizeProjectImages } from '@/lib/project-images'
+import { normalizeProjectVideoUrl } from '@/lib/project-video'
 
 export async function GET(
   req: NextRequest,
@@ -66,6 +67,11 @@ export async function PUT(
     } = body
 
     const updateData: Prisma.ProjectUpdateInput = {}
+    if (body.videoUrl !== undefined) {
+      try { updateData.videoUrl = normalizeProjectVideoUrl(body.videoUrl) } catch (error) {
+        return NextResponse.json({ error: (error as Error).message }, { status: 400 })
+      }
+    }
     if (body.images !== undefined) {
       try { updateData.images = JSON.stringify(normalizeProjectImages(body.images)) } catch (error) {
         return NextResponse.json({ error: (error as Error).message }, { status: 400 })

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
 import type { Prisma } from '@prisma/client'
 import { normalizeProjectImages } from '@/lib/project-images'
+import { normalizeProjectVideoUrl } from '@/lib/project-video'
 
 export async function GET(req: NextRequest) {
   try {
@@ -93,6 +94,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json()
+    let videoUrl: string | null
+    try { videoUrl = normalizeProjectVideoUrl(body.videoUrl) } catch (error) {
+      return NextResponse.json({ error: (error as Error).message }, { status: 400 })
+    }
     let images: string[]
     try { images = normalizeProjectImages(body.images ?? []) } catch (error) {
       return NextResponse.json({ error: (error as Error).message }, { status: 400 })
@@ -185,6 +190,7 @@ export async function POST(req: NextRequest) {
         status: status === 'draft' ? 'draft' : 'published',
         featured: Boolean(featured),
         sortOrder: Number(sortOrder) || 0,
+        videoUrl,
         sourceUrl: sourceUrl ? sourceUrl.trim() : null,
         completedAt: completedAt ? completedAt.trim() : null,
         tags: {

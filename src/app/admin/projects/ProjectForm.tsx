@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { readProjectImages } from '@/lib/project-images'
+import { normalizeProjectVideoUrl } from '@/lib/project-video'
 import { ProjectImagesEditor } from './ProjectImagesEditor'
 import {
   ArrowLeft,
@@ -33,6 +34,7 @@ interface ProjectData {
   status?: string
   featured?: boolean
   sortOrder?: number
+  videoUrl?: string | null
   sourceUrl?: string | null
   completedAt?: string | null
   description?: string | null
@@ -64,6 +66,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
   const [status, setStatus] = useState(initialData?.status || 'published')
   const [featured, setFeatured] = useState(Boolean(initialData?.featured))
   const [sortOrder, setSortOrder] = useState<number>(initialData?.sortOrder ?? 0)
+  const [videoUrl, setVideoUrl] = useState(initialData?.videoUrl || '')
   const [sourceUrl, setSourceUrl] = useState(initialData?.sourceUrl || '')
   const [completedAt, setCompletedAt] = useState(initialData?.completedAt || '')
   const [description, setDescription] = useState(initialData?.description || '')
@@ -200,6 +203,11 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
     if (!summary.trim()) return setError('请输入一句话简介')
     if (!categoryId) return setError('请选择项目所属分类')
 
+    let normalizedVideoUrl: string | null
+    try { normalizedVideoUrl = normalizeProjectVideoUrl(videoUrl) } catch (error) {
+      return setError((error as Error).message)
+    }
+
     // 解析标签
     const tags = tagsInput
       .split(/[,，、;；\n]+/)
@@ -220,6 +228,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       featured,
       sortOrder: Number(sortOrder) || 0,
       sourceUrl,
+      videoUrl: normalizedVideoUrl,
       completedAt,
       description,
     }
@@ -598,6 +607,25 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
               />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="project-video-url" className="mb-1.5 block text-xs font-medium text-ink-2">
+              视频链接（可选）
+            </label>
+            <input
+              id="project-video-url"
+              type="url"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              maxLength={2048}
+              aria-describedby="project-video-help"
+              placeholder="https://www.bilibili.com/video/..."
+              className="min-h-11 w-full rounded-btn border border-line-strong bg-subtle px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ink/10"
+            />
+            <p id="project-video-help" className="mt-2 text-xs leading-6 text-ink-3">
+              填写 Bilibili、YouTube 等视频网站的完整分享链接。访客点击“观看视频”后会在新标签页打开；留空则不显示，清空后保存可移除链接。
+            </p>
           </div>
 
           {/* 详情说明 */}

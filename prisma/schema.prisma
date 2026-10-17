@@ -52,6 +52,7 @@ model Project {
   status      String    @default("published") // "published" | "draft"
   featured    Boolean   @default(false)
   sortOrder   Int       @default(0)
+  videoUrl    String?
   sourceUrl   String?
   completedAt String?
   createdAt   DateTime  @default(now())

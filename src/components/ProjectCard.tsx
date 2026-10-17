@@ -2,7 +2,8 @@ import React from 'react'
 import Link from 'next/link'
 import { ProjectGallery } from './ProjectGallery'
 import { projectGallery } from '@/lib/project-images'
-import { ExternalLink, Sparkles, Calendar, Layers } from 'lucide-react'
+import { readProjectVideoUrl } from '@/lib/project-video'
+import { ExternalLink, Sparkles, Calendar, Layers, Play } from 'lucide-react'
 import { GithubIcon } from './Icons'
 
 export interface ProjectCardData {
@@ -26,6 +27,7 @@ export interface ProjectCardData {
   }[]
   featured?: boolean
   status?: string
+  videoUrl?: string | null
   sourceUrl?: string | null
   completedAt?: string | null
 }
@@ -36,6 +38,7 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const videoUrl = readProjectVideoUrl(project.videoUrl)
   const detailUrl = `/projects/${encodeURIComponent(project.id)}`
 
   return (
@@ -104,6 +107,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <ExternalLink className="h-3.5 w-3.5" strokeWidth={2.2} />
           </a>
 
+          {videoUrl && (
+            <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className="inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn border border-line-strong px-3 py-2 text-sm text-ink-2 hover:bg-subtle">
+              <Play className="h-4 w-4" />观看视频
+            </a>
+          )}
           {project.sourceUrl && (
             <a
               href={project.sourceUrl}
