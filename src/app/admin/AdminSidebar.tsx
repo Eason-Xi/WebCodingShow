@@ -14,6 +14,7 @@ import {
   Code2,
   Menu,
   X,
+  Link2,
 } from 'lucide-react'
 
 export function AdminSidebar() {
@@ -26,6 +27,7 @@ export function AdminSidebar() {
     { name: '数据看板', href: '/admin', icon: LayoutDashboard },
     { name: '项目管理', href: '/admin/projects', icon: FolderKanban },
     { name: '新增作品', href: '/admin/projects/new', icon: PlusCircle },
+    { name: '链接导入', href: '/admin/import', icon: Link2 },
     { name: '分类管理', href: '/admin/categories', icon: Tag },
     { name: '个人资料', href: '/admin/profile', icon: User },
   ]

@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  Link2,
 } from 'lucide-react'
 
 interface Category {
@@ -66,7 +67,7 @@ export function ProjectsTable() {
       const params = new URLSearchParams()
       if (search.trim()) params.set('search', search.trim())
       if (selectedCategory !== 'all') params.set('categoryId', selectedCategory)
-      if (selectedStatus !== 'all') params.set('status', selectedStatus)
+      params.set('status', selectedStatus)
       params.set('page', page.toString())
       params.set('limit', '10')
       params.set('sort', 'order')
@@ -156,13 +157,14 @@ export function ProjectsTable() {
           </p>
         </div>
 
-        <Link
-          href="/admin/projects/new"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-btn bg-brand text-brand-ink text-sm font-medium hover:opacity-90 transition-all shadow-soft shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>录入新项目</span>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/import" className="inline-flex min-h-11 items-center gap-2 rounded-btn bg-brand px-4 py-2.5 text-sm font-medium text-brand-ink shadow-soft hover:bg-brand-hover">
+            <Link2 className="h-4 w-4" />链接导入
+          </Link>
+          <Link href="/admin/projects/new" className="inline-flex min-h-11 items-center gap-2 rounded-btn border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink-2 hover:bg-subtle">
+            <Plus className="h-4 w-4" />手动录入
+          </Link>
+        </div>
       </div>
 
       {/* 筛选过滤工具条 */}
