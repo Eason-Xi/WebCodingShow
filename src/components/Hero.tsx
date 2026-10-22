@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpen } from 'lucide-react'
 
 interface HeroProps {
   profile: {
@@ -82,13 +82,13 @@ export function Hero({ profile, totalCount }: HeroProps) {
             <span>探索完整项目库</span>
             <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
           </Link>
-          <a
-            href="#featured"
+          <Link
+            href="/blog"
             className="inline-flex w-full items-center justify-center gap-2 rounded-btn border border-line-strong bg-surface px-5 py-2.5 text-[14px] font-medium text-ink transition-colors duration-200 hover:bg-subtle sm:w-auto"
           >
-            <Sparkles className="h-4 w-4 text-amber-500" strokeWidth={2.2} />
-            <span>查看代表作</span>
-          </a>
+            <BookOpen className="h-4 w-4" strokeWidth={2.2} />
+            <span>阅读个人博客</span>
+          </Link>
         </div>
       </div>
     </section>

@@ -9,6 +9,8 @@ import {
   Plus,
   ExternalLink,
   ArrowRight,
+  BookOpenText,
+  SquarePen,
 } from 'lucide-react'
 
 export const revalidate = 0
@@ -21,6 +23,8 @@ export default async function AdminDashboardPage() {
     featuredProjects,
     totalCategories,
     recentProjects,
+    totalPosts,
+    publishedPosts,
   ] = await Promise.all([
     prisma.project.count(),
     prisma.project.count({ where: { status: 'published' } }),
@@ -32,6 +36,8 @@ export default async function AdminDashboardPage() {
       orderBy: { updatedAt: 'desc' },
       include: { category: true },
     }),
+    prisma.blogPost.count(),
+    prisma.blogPost.count({ where: { status: 'published' } }),
   ])
 
   const stats = [
@@ -40,6 +46,7 @@ export default async function AdminDashboardPage() {
     { label: '草稿箱', value: draftProjects, desc: '待完善或暂不展示', icon: FileEdit },
     { label: '精选代表作', value: featuredProjects, desc: '首页重点展示位', icon: Sparkles },
     { label: '项目分类', value: totalCategories, desc: '技术领域形态', icon: Layers },
+    { label: '博客文章', value: totalPosts, desc: `${publishedPosts} 篇已发布`, icon: BookOpenText },
   ]
 
   return (
@@ -54,6 +61,13 @@ export default async function AdminDashboardPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <Link
+            href="/admin/posts/new"
+            className="inline-flex items-center gap-2 rounded-btn border border-line-strong bg-surface px-4 py-2.5 text-[13px] font-medium text-ink-2 transition-colors hover:bg-subtle hover:text-ink"
+          >
+            <SquarePen className="h-4 w-4" strokeWidth={2.2} />
+            <span>写文章</span>
+          </Link>
           <Link
             href="/admin/projects/new"
             className="inline-flex items-center gap-2 rounded-btn bg-brand px-4 py-2.5 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
@@ -73,7 +87,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* 指标卡 */}
-      <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {stats.map((item) => {
           const Icon = item.icon
           return (

@@ -9,7 +9,8 @@ export function Navbar() {
 
   const links = [
     { name: '首页', href: '/' },
-    { name: '全部作品', href: '/projects' },
+    { name: '作品', href: '/projects' },
+    { name: '博客', href: '/blog' },
   ]
 
   return (
@@ -20,7 +21,7 @@ export function Navbar() {
           <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-brand text-brand-ink shadow-soft transition-transform duration-300 group-hover:scale-[1.05]">
             <Code2 className="h-[18px] w-[18px]" strokeWidth={2.2} />
           </span>
-          <span className="hidden flex-col justify-center leading-none min-[360px]:flex">
+          <span className="hidden flex-col justify-center leading-none sm:flex">
             <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">
               WebCoding
             </span>
@@ -38,7 +39,8 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`whitespace-nowrap rounded-btn px-2 py-2 text-[13px] font-medium transition-colors duration-200 sm:px-3.5 sm:text-[13.5px] ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-btn px-2 py-2 text-[13px] font-medium transition-colors duration-200 sm:px-3.5 sm:text-[13.5px] ${
                   isActive
                     ? 'bg-subtle text-ink'
                     : 'text-ink-2 hover:bg-subtle hover:text-ink'
@@ -54,17 +56,17 @@ export function Navbar() {
           <Link
             href="/admin/projects/new"
             aria-label="录入新作品"
-            className="flex shrink-0 items-center gap-1.5 rounded-btn bg-brand px-3 py-2 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-btn bg-brand px-3 py-2 text-[13px] font-medium text-brand-ink shadow-soft transition-colors duration-200 hover:bg-brand-hover"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.4} />
-            <span className="hidden sm:inline">录入新作品</span>
+            <span className="hidden lg:inline">录入新作品</span>
           </Link>
 
           <Link
             href="/admin"
             title="进入后台仪表盘"
             aria-label="进入后台仪表盘"
-            className="grid h-9 w-9 place-items-center rounded-btn text-ink-3 transition-colors duration-200 hover:bg-subtle hover:text-ink"
+            className="grid h-11 w-11 place-items-center rounded-btn text-ink-2 transition-colors duration-200 hover:bg-subtle hover:text-ink"
           >
             <ShieldCheck className="h-[17px] w-[17px]" strokeWidth={1.9} />
           </Link>

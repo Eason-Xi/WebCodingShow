@@ -21,10 +21,10 @@ Never put credentials in Git. Preview deployments should use a separate database
 
 ## Preserve existing local content
 
-1. With the original SQLite `.env` active, run `npm run db:generate` then `npm run data:export`. The ignored, private `backups/portfolio.json` includes all projects, categories, tags and profile data. Existing backups are never overwritten.
+1. With the original SQLite `.env` active, run `npm run db:generate` then `npm run data:export`. The ignored, private `backups/portfolio.json` includes the profile, projects, categories, tags and blog posts. Existing backups are never overwritten; version 1 snapshots without posts remain importable.
 2. Pull cloud environment variables with `vercel env pull .env.local --environment=production`. Verify `DIRECT_URL` is present; map it from the unpooled Neon URL if needed.
 3. Run `npm run db:generate`, then `npm run db:migrate` against the confirmed target database.
-4. Run `npm run data:import`. The importer requires an empty PostgreSQL database and preserves IDs and tag relationships. Existing local images are uploaded to Blob and their URLs rewritten. Database inserts are atomic; a Blob transfer report is saved under `backups/` for recovery if the import fails.
+4. Run `npm run data:import`. The importer requires an empty PostgreSQL database and preserves IDs and project tag relationships. Existing local project images, avatars and blog covers are uploaded to Blob and their URLs rewritten. Database inserts are atomic; a Blob transfer report is saved under `backups/` for recovery if the import fails.
 5. Verify row counts, cover images, login and an upload before promoting a preview to production.
 
 For a fresh demonstration database, `npm run db:seed` is an alternative to importing. It changes demo records, so do not run it against populated production data.

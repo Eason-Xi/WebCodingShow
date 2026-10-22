@@ -15,6 +15,8 @@ import {
   Menu,
   X,
   Link2,
+  FileText,
+  SquarePen,
 } from 'lucide-react'
 
 export function AdminSidebar() {
@@ -27,6 +29,8 @@ export function AdminSidebar() {
     { name: '数据看板', href: '/admin', icon: LayoutDashboard },
     { name: '项目管理', href: '/admin/projects', icon: FolderKanban },
     { name: '新增作品', href: '/admin/projects/new', icon: PlusCircle },
+    { name: '文章管理', href: '/admin/posts', icon: FileText },
+    { name: '写文章', href: '/admin/posts/new', icon: SquarePen },
     { name: '链接导入', href: '/admin/import', icon: Link2 },
     { name: '分类管理', href: '/admin/categories', icon: Tag },
     { name: '个人资料', href: '/admin/profile', icon: User },
@@ -101,6 +105,8 @@ export function AdminSidebar() {
                 ? pathname === '/admin'
                 : item.href === '/admin/projects'
                   ? pathname === item.href || /^\/admin\/projects\/[^/]+\/edit$/.test(pathname)
+                  : item.href === '/admin/posts'
+                    ? pathname === item.href || /^\/admin\/posts\/[^/]+\/edit$/.test(pathname)
                   : pathname === item.href
 
             return (

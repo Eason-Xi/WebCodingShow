@@ -12,11 +12,18 @@ const file = process.argv[3] || 'backups/portfolio.json'
 const mode = process.argv[2]
 
 async function snapshot() {
-  const [profiles, categories, tags, projects] = await Promise.all([
+  const [profiles, categories, tags, projects, posts] = await Promise.all([
     prisma.profile.findMany(), prisma.category.findMany(), prisma.tag.findMany(),
     prisma.project.findMany({ include: { tags: { select: { id: true } } } }),
+    prisma.blogPost.findMany(),
   ])
-  return { version: 1, profiles, categories, tags, projects }
+  return { version: 2 as const, profiles, categories, tags, projects, posts }
+}
+
+type CurrentSnapshot = Awaited<ReturnType<typeof snapshot>>
+type LegacySnapshot = Omit<CurrentSnapshot, 'version' | 'posts'> & {
+  version: 1
+  posts?: never
 }
 
 async function main() {
@@ -25,18 +32,20 @@ async function main() {
     await mkdir(path.dirname(file), { recursive: true })
     // Never overwrite an earlier backup.
     await writeFile(file, JSON.stringify(data, null, 2), { flag: 'wx', mode: 0o600 })
-    console.log(`Exported ${data.projects.length} projects to ${file}`)
+    console.log(`Exported ${data.projects.length} projects and ${data.posts.length} posts to ${file}`)
     return
   }
   if (mode !== 'import') throw new Error('Use export or import [snapshot path]')
   if (!/^postgres(ql)?:/.test(process.env.DATABASE_URL || '')) {
     throw new Error('Import is only supported into PostgreSQL')
   }
-  const data = JSON.parse(await readFile(file, 'utf8')) as Awaited<ReturnType<typeof snapshot>>
-  if (data.version !== 1) throw new Error('Unsupported snapshot version')
+  const data = JSON.parse(await readFile(file, 'utf8')) as CurrentSnapshot | LegacySnapshot
+  if (data.version !== 1 && data.version !== 2) throw new Error('Unsupported snapshot version')
+  if (data.version === 2 && !Array.isArray(data.posts)) throw new Error('Snapshot posts are invalid')
+  const posts: CurrentSnapshot['posts'] = data.version === 2 ? data.posts : []
   // A first-time migration only: never replace existing production content.
   const existing = await snapshot()
-  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length) {
+  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length || existing.posts.length) {
     throw new Error('Target database must be empty; existing content was not changed')
   }
   const images = new Map<string, string>()
@@ -63,6 +72,7 @@ async function main() {
       project.cover = await imageUrl(project.cover)
       project.images = JSON.stringify(await Promise.all(readProjectImages(project.images).map(imageUrl)))
     }
+    for (const post of posts) post.cover = await imageUrl(post.cover)
     await prisma.$transaction(async (tx) => {
       for (const profile of data.profiles) await tx.profile.create({ data: profile })
       for (const category of data.categories) await tx.category.create({ data: category })
@@ -71,8 +81,9 @@ async function main() {
         const { tags, ...fields } = project
         await tx.project.create({ data: { ...fields, tags: { connect: tags } } })
       }
+      for (const post of posts) await tx.blogPost.create({ data: post })
     }, { timeout: 60000 })
-    console.log(`Imported ${data.projects.length} projects; migrated ${images.size} local images`)
+    console.log(`Imported ${data.projects.length} projects and ${posts.length} posts; migrated ${images.size} local images`)
   } finally {
     if (uploads.length) {
       await mkdir('backups', { recursive: true })

@@ -3,14 +3,15 @@ import { prisma } from '@/lib/prisma'
 import { Navbar } from '@/components/Navbar'
 import { Hero } from '@/components/Hero'
 import { ProjectCard } from '@/components/ProjectCard'
+import { BlogCard } from '@/components/BlogCard'
 import { Footer } from '@/components/Footer'
-import { Sparkles, ArrowRight, Layers, LayoutGrid } from 'lucide-react'
+import { Sparkles, ArrowRight, Layers, LayoutGrid, BookOpenText } from 'lucide-react'
 
 // 服务端动态渲染确保后台新增后立即更新
 export const revalidate = 0
 
 export default async function HomePage() {
-  const [profile, featuredProjects, categories, totalPublishedCount] = await Promise.all([
+  const [profile, featuredProjects, categories, totalPublishedCount, latestBlogPosts] = await Promise.all([
     prisma.profile.findUnique({ where: { id: 'default' } }),
     prisma.project.findMany({
       where: {
@@ -38,6 +39,23 @@ export default async function HomePage() {
     }),
     prisma.project.count({
       where: { status: 'published' },
+    }),
+    prisma.blogPost.findMany({
+      where: { status: 'published' },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        cover: true,
+        category: true,
+        tags: true,
+        readingTime: true,
+        publishedAt: true,
+        createdAt: true,
+      },
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
+      take: 3,
     }),
   ])
 
@@ -100,7 +118,41 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* 3. 分类矩阵 */}
+        {/* 3. 最新文章 */}
+        <section className="border-t border-line">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+            <div className="mb-9 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="mb-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-2">
+                  <BookOpenText className="h-3.5 w-3.5" strokeWidth={2.2} />
+                  <span>Latest notes</span>
+                </div>
+                <h2 className="text-[24px] font-semibold text-ink sm:text-[28px]">最新思考与手记</h2>
+                <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">
+                  从作品的结果走进实现过程，记录技术选择、产品判断与复盘。
+                </p>
+              </div>
+              <Link href="/blog" className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-[13.5px] font-medium text-ink-2 transition-colors hover:text-ink">
+                <span>进入个人博客</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" strokeWidth={2.2} />
+              </Link>
+            </div>
+
+            {latestBlogPosts.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
+                {latestBlogPosts.map((post) => <BlogCard key={post.id} post={post} headingLevel={3} />)}
+              </div>
+            ) : (
+              <Link href="/blog" className="group flex min-h-40 flex-col items-center justify-center rounded-card border border-dashed border-line-strong bg-surface px-5 py-10 text-center transition-colors hover:border-ink-3">
+                <BookOpenText className="h-6 w-6 text-ink-3" />
+                <p className="mt-3 text-[14px] font-medium text-ink">博客已接入，第一篇文章正在整理中</p>
+                <span className="mt-1 text-[12.5px] text-ink-2 group-hover:text-ink">查看博客页面 <span aria-hidden>→</span></span>
+              </Link>
+            )}
+          </div>
+        </section>
+
+        {/* 4. 分类矩阵 */}
         <section className="border-t border-line">
           <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
             <div className="mb-9">
@@ -137,7 +189,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* 4. 引流卡片 */}
+        {/* 5. 引流卡片 */}
         <section className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
           <div className="relative flex flex-col items-center justify-between gap-7 overflow-hidden rounded-panel border border-[#26262d] bg-[#1b1b21] p-8 shadow-panel sm:flex-row sm:p-11 dark:border-line-strong dark:bg-[#151519]">
             <div
@@ -146,19 +198,22 @@ export default async function HomePage() {
             />
             <div className="relative max-w-xl text-center sm:text-left">
               <h3 className="text-[22px] font-semibold text-white sm:text-[26px]">
-                想要检索更丰富的项目细节？
+                从作品出发，继续阅读背后的思考。
               </h3>
               <p className="mt-2.5 text-[13.5px] leading-[1.75] text-white/60 sm:text-[14.5px]">
-                进入完整项目作品库，支持毫秒级关键词检索、分类筛选与年份追溯，轻松浏览 500–1000+ 项目。
+                作品库已收录 {totalPublishedCount} 个可公开浏览的项目；博客则用长文记录其中的技术选择、实现过程与复盘。
               </p>
             </div>
-            <Link
-              href="/projects"
-              className="relative inline-flex shrink-0 items-center gap-2 rounded-btn bg-white px-5 py-2.5 text-[13.5px] font-medium text-[#17171c] shadow-card transition-all duration-200 hover:bg-white/90 active:scale-[0.98]"
-            >
-              <LayoutGrid className="h-4 w-4" strokeWidth={2.2} />
-              <span>进入完整作品库</span>
-            </Link>
+            <div className="relative flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Link href="/projects" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-btn bg-white px-5 text-[13.5px] font-medium text-[#17171c] shadow-card transition-all hover:bg-white/90 active:scale-[0.98]">
+                <LayoutGrid className="h-4 w-4" strokeWidth={2.2} />
+                <span>浏览作品</span>
+              </Link>
+              <Link href="/blog" className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-btn border border-white/20 px-5 text-[13.5px] font-medium text-white transition-colors hover:bg-white/10">
+                <BookOpenText className="h-4 w-4" strokeWidth={2.2} />
+                <span>阅读博客</span>
+              </Link>
+            </div>
           </div>
         </section>
       </main>
