@@ -79,3 +79,14 @@ model BlogPost {
 
   @@index([status, publishedAt(sort: Desc)])
 }
+
+model MusicSettings {
+  id             String   @id @default("default")
+  enabled        Boolean  @default(false)
+  autoplay       Boolean  @default(false)
+  loopPlaylist   Boolean  @default(true)
+  defaultVolume  Int      @default(35)
+  defaultTrackId String?
+  tracks         String   @default("[]")
+  updatedAt      DateTime @updatedAt
+}

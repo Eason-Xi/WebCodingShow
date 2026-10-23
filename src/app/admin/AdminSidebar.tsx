@@ -17,6 +17,7 @@ import {
   Link2,
   FileText,
   SquarePen,
+  Music2,
 } from 'lucide-react'
 
 export function AdminSidebar() {
@@ -33,6 +34,7 @@ export function AdminSidebar() {
     { name: '写文章', href: '/admin/posts/new', icon: SquarePen },
     { name: '链接导入', href: '/admin/import', icon: Link2 },
     { name: '分类管理', href: '/admin/categories', icon: Tag },
+    { name: '背景音乐', href: '/admin/music', icon: Music2 },
     { name: '个人资料', href: '/admin/profile', icon: User },
   ]
 

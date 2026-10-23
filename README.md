@@ -1,6 +1,6 @@
 # WebCoding · 作品集合平台
 
-一个用于展示、检索和管理个人 Web / AI 作品与长文内容的全栈项目。前台展示精选作品、完整作品库和个人博客，后台维护项目、文章、分类和个人资料。
+一个用于展示、检索和管理个人 Web / AI 作品与长文内容的全栈项目。前台展示精选作品、完整作品库、个人博客和可选背景音乐，后台维护项目、文章、分类、歌单和个人资料。
 
 [在线体验](https://webcoding-show.vercel.app) · [完整作品库](https://webcoding-show.vercel.app/projects) · [个人博客](https://webcoding-show.vercel.app/blog) · [部署与数据迁移](docs/vercel-deployment.md)
 
@@ -23,8 +23,9 @@
 - **链接导入**：独立的后台入口，粘贴公开网站或 GitHub 仓库地址后，自动提取资料、匹配分类并存为草稿；可直接打开草稿补充和发布，重复地址返回已有作品。
 - **视频链接**：新增和编辑作品时可填写第三方视频的完整 http/https 地址，作品卡片与详情页显示“观看视频”，在新标签页打开视频平台。留空不显示，清空保存即可移除。
 - **图片管理**：上传封面与头像，每个作品可额外添加 20 张图片，支持批量上传、图片链接、调整顺序和移除。前台相册支持切换、放大、键盘方向键及 Esc 关闭。支持 PNG、JPEG、WebP、GIF，单张最大 4 MiB；云端使用 Vercel Blob 持久化保存。
+- **背景音乐**：后台可上传歌曲或添加公开音频外链，设置前台开关、默认歌曲、音量、自动播放和歌单循环；访客可在悬浮播放器中播放、切歌、选择歌曲和调整自己的音量。支持 MP3、M4A、WAV、OGG，单个文件最大 25 MiB。
 - **访问控制**：管理员密码登录、签名会话和 HttpOnly Cookie；生产环境使用 Secure Cookie，未登录访客无法读取草稿。
-- **双环境开发**：本地 SQLite，生产 PostgreSQL；提供数据导出、导入和本地图片迁移脚本。
+- **双环境开发**：本地 SQLite，生产 PostgreSQL；提供数据导出、导入和本地图片、音频迁移脚本。
 
 ## 技术栈
 
@@ -33,7 +34,7 @@
 | 全栈框架 | Next.js 16.3.5 · App Router · TypeScript |
 | UI | React 19.2 · Tailwind CSS 4 · Lucide React |
 | 数据库 | Prisma 6.19.3 · SQLite（本地）· Neon PostgreSQL（云端） |
-| 图片存储 | 本地文件 / Vercel Blob |
+| 图片与音频存储 | 本地文件 / Vercel Blob |
 | 认证 | Web Crypto HMAC 签名会话 · HttpOnly Cookie |
 | 部署 | Vercel · GitHub `main` 分支自动部署 |
 
@@ -61,7 +62,7 @@ npm run db:seed
 
 `db:seed` 会写入演示分类、标签和项目，仅用于初始化演示环境；不要对已有真实数据的生产数据库执行。演示作品的介绍和外链是占位内容，正式使用时请在后台替换。
 
-已有本地数据库升级时，运行 `npm run db:generate` 和 `npx prisma db push` 同步模型即可，无需重新 seed。生产部署会自动执行 PostgreSQL 增量迁移，新增 `BlogPost` 表时不会改动已有项目数据。
+已有本地数据库升级时，运行 `npm run db:generate` 和 `npx prisma db push` 同步模型即可，无需重新 seed。生产部署会自动执行 PostgreSQL 增量迁移，不会改动已有项目数据。
 
 ### 3. 启动开发服务
 
@@ -110,7 +111,7 @@ npm run dev
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL 池化连接地址 |
 | `DIRECT_URL` | PostgreSQL 直连地址，用于数据库迁移 |
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob 图片存储读写凭证 |
+| `BLOB_READ_WRITE_TOKEN` | Vercel Blob 图片与音频存储读写凭证 |
 | `ADMIN_PASSWORD` | 独立的管理员密码，至少 12 位 |
 | `JWT_SECRET` | 随机会话签名密钥，至少 32 位 |
 | `GITHUB_TOKEN`（可选） | 服务端 GitHub 访问凭证，提高仓库读取限额；读取私有仓库需要相应权限 |
@@ -129,9 +130,9 @@ src/
 │   ├── page.tsx             # 首页：个人名片、精选作品、最新文章、分类导航
 │   ├── projects/            # 完整作品库
 │   ├── blog/                # 博客列表与动态文章详情
-│   ├── admin/               # 登录、仪表盘、项目、文章、分类和个人资料管理
-│   └── api/                 # 项目、文章、认证、上传等接口
-├── components/              # 导航、页脚、项目卡片等组件
+│   ├── admin/               # 登录、仪表盘、项目、文章、分类、音乐和个人资料管理
+│   └── api/                 # 项目、文章、音乐、认证、上传等接口
+├── components/              # 导航、页脚、项目卡片和前台播放器等组件
 ├── lib/                     # 认证、Prisma 客户端和上传规则
 └── proxy.ts                 # 后台路由访问保护
 prisma/
