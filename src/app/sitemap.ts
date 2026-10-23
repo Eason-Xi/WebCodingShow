@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
+import { blogPostPath } from '@/lib/blog-post'
 
 export const revalidate = 0
 
@@ -27,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     })),
     ...posts.map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
+      url: `${baseUrl}${blogPostPath(post.slug)}`,
       lastModified: post.updatedAt,
       changeFrequency: 'monthly' as const,
       priority: 0.8,

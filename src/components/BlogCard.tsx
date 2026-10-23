@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, Clock3, FileText } from 'lucide-react'
-import { readBlogTags } from '@/lib/blog-post'
+import { blogPostPath, readBlogTags } from '@/lib/blog-post'
 
 export interface BlogCardPost {
   id: string
@@ -46,7 +46,7 @@ export function BlogCard({
       }`}
     >
       <Link
-        href={`/blog/${post.slug}`}
+        href={blogPostPath(post.slug)}
         aria-label={`阅读《${post.title}》`}
         className={`relative block overflow-hidden bg-subtle ${featured ? 'min-h-56 md:min-h-[22rem]' : 'aspect-[16/9]'}`}
       >
@@ -82,7 +82,7 @@ export function BlogCard({
         </div>
 
         <HeadingTag className={`${featured ? 'mt-5 text-[26px] sm:text-[32px]' : 'mt-4 text-[20px] sm:text-[22px]'} font-semibold text-ink`}>
-          <Link href={`/blog/${post.slug}`} className="transition-colors hover:text-ink-2">
+          <Link href={blogPostPath(post.slug)} className="transition-colors hover:text-ink-2">
             {post.title}
           </Link>
         </HeadingTag>
@@ -101,7 +101,7 @@ export function BlogCard({
         ) : null}
 
         <Link
-          href={`/blog/${post.slug}`}
+          href={blogPostPath(post.slug)}
           className="mt-6 inline-flex min-h-11 items-center gap-2 self-start rounded-btn text-[13.5px] font-medium text-ink-2 transition-colors hover:text-ink"
         >
           <span>阅读全文</span>

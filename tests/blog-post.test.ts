@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import {
   BlogPostValidationError,
   MAX_BLOG_TAGS,
+  blogPostPath,
   blogPostResponse,
+  decodeBlogRouteSlug,
   estimateReadingTime,
   normalizeBlogCategory,
   normalizeBlogContent,
@@ -24,6 +26,13 @@ test('blog slugs preserve Chinese letters and normalize punctuation', () => {
   assert.equal(slugifyBlogTitle('  Next.js 16：我的第一篇 Blog!  '), 'next-js-16-我的第一篇-blog')
   assert.equal(normalizeBlogSlug('Hello---WORLD'), 'hello-world')
   assert.equal(slugifyBlogTitle('***'), 'post')
+})
+
+test('blog routes round-trip Chinese slugs and tolerate malformed escapes', () => {
+  assert.equal(blogPostPath('古代遗迹之谜'), '/blog/%E5%8F%A4%E4%BB%A3%E9%81%97%E8%BF%B9%E4%B9%8B%E8%B0%9C')
+  assert.equal(decodeBlogRouteSlug('%E5%8F%A4%E4%BB%A3%E9%81%97%E8%BF%B9%E4%B9%8B%E8%B0%9C'), '古代遗迹之谜')
+  assert.equal(decodeBlogRouteSlug('next-js-16'), 'next-js-16')
+  assert.equal(decodeBlogRouteSlug('%E0%A4%A'), '%E0%A4%A')
 })
 test('blog tags accept arrays, CSV and persisted JSON while deduplicating', () => {
   assert.deepEqual(normalizeBlogTags(['Next.js', ' next.js ', '产品设计']), ['Next.js', '产品设计'])

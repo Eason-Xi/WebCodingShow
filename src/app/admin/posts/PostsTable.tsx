@@ -13,6 +13,7 @@ import {
   Sparkles,
   Trash2,
 } from 'lucide-react'
+import { blogPostPath } from '@/lib/blog-post'
 
 type PostStatus = 'draft' | 'published'
 const POSTS_PAGE_SIZE = 20
@@ -346,7 +347,7 @@ export function PostsTable() {
                         <div className="inline-flex items-center gap-1.5">
                           {post.status === 'published' ? (
                             <Link
-                              href={`/blog/${post.slug}`}
+                              href={blogPostPath(post.slug)}
                               target="_blank"
                               aria-label={`预览《${post.title}》`}
                               title="在新标签页预览"

@@ -57,6 +57,19 @@ export function normalizeBlogSlug(value: unknown): string {
   return slugifyBlogTitle(value)
 }
 
+/** Decode a dynamic-route slug before comparing it with the persisted value. */
+export function decodeBlogRouteSlug(value: string): string {
+  try {
+    return decodeURIComponent(value).normalize('NFKC')
+  } catch {
+    return value.normalize('NFKC')
+  }
+}
+
+export function blogPostPath(slug: string): string {
+  return `/blog/${encodeURIComponent(slug)}`
+}
+
 export function normalizeBlogCategory(value: unknown): string | null {
   if (value === undefined || value === null) return null
   if (typeof value !== 'string') throw new BlogPostValidationError('文章分类格式不正确')

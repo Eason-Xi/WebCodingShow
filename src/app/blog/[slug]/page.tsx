@@ -4,7 +4,7 @@ import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Mail } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import { readBlogTags } from '@/lib/blog-post'
+import { blogPostPath, decodeBlogRouteSlug, readBlogTags } from '@/lib/blog-post'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
 import { MarkdownArticle } from '@/components/MarkdownArticle'
@@ -16,8 +16,8 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>
 }
 
-const getPublishedPost = cache(async (slug: string) => prisma.blogPost.findFirst({
-  where: { slug, status: 'published' },
+const getPublishedPost = cache(async (routeSlug: string) => prisma.blogPost.findFirst({
+  where: { slug: decodeBlogRouteSlug(routeSlug), status: 'published' },
 }))
 
 function formatDate(value: Date) {
@@ -65,7 +65,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     title: post.title,
     description: post.excerpt,
     keywords: readBlogTags(post.tags),
-    alternates: { canonical: `/blog/${post.slug}` },
+    alternates: { canonical: blogPostPath(post.slug) },
     openGraph: {
       type: 'article',
       title: post.title,
@@ -208,13 +208,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         {(newerPost || olderPost) ? (
           <nav className="mx-auto grid max-w-[760px] grid-cols-1 gap-3 px-5 py-8 sm:grid-cols-2 sm:px-8" aria-label="上下篇文章">
             {olderPost ? (
-              <Link href={`/blog/${olderPost.slug}`} className="group rounded-card border border-line bg-surface p-4 shadow-soft transition-colors hover:border-line-strong">
+              <Link href={blogPostPath(olderPost.slug)} className="group rounded-card border border-line bg-surface p-4 shadow-soft transition-colors hover:border-line-strong">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-2"><ArrowLeft className="h-3.5 w-3.5" /> 上一篇</span>
                 <span className="mt-2 line-clamp-2 block text-[14px] font-medium leading-6 text-ink">{olderPost.title}</span>
               </Link>
             ) : <span />}
             {newerPost ? (
-              <Link href={`/blog/${newerPost.slug}`} className="group rounded-card border border-line bg-surface p-4 text-right shadow-soft transition-colors hover:border-line-strong">
+              <Link href={blogPostPath(newerPost.slug)} className="group rounded-card border border-line bg-surface p-4 text-right shadow-soft transition-colors hover:border-line-strong">
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink-2">下一篇 <ArrowRight className="h-3.5 w-3.5" /></span>
                 <span className="mt-2 line-clamp-2 block text-[14px] font-medium leading-6 text-ink">{newerPost.title}</span>
               </Link>
