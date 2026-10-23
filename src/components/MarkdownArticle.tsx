@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { readBilibiliVideoEmbed } from '@/lib/bilibili-video'
 
 function MarkdownLink({ href, children, ...props }: ComponentPropsWithoutRef<'a'>) {
   const external = typeof href === 'string' && /^https?:\/\//i.test(href)
@@ -16,6 +17,38 @@ function MarkdownLink({ href, children, ...props }: ComponentPropsWithoutRef<'a'
   )
 }
 
+function BilibiliVideo({ href }: { href: string }) {
+  const video = readBilibiliVideoEmbed(href)
+  if (!video) return null
+
+  return (
+    <figure className="my-8 overflow-hidden rounded-card border border-line bg-surface shadow-card">
+      <div className="aspect-video w-full bg-[#111116]">
+        <iframe
+          src={video.playerUrl}
+          title={`哔哩哔哩视频 ${video.videoId}`}
+          loading="lazy"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+          className="h-full w-full border-0"
+        />
+      </div>
+      <figcaption className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3 text-[13px] text-ink-2">
+        <span>哔哩哔哩视频 · 可在本文内直接播放</span>
+        <a
+          href={video.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-ink underline decoration-line-strong decoration-1 underline-offset-4 transition-colors hover:decoration-ink"
+        >
+          在哔哩哔哩打开
+        </a>
+      </figcaption>
+    </figure>
+  )
+}
+
 export function MarkdownArticle({ content }: { content: string }) {
   return (
     <div className="min-w-0 text-[16px] leading-[1.95] text-ink-2 sm:text-[17px]">
@@ -26,7 +59,16 @@ export function MarkdownArticle({ content }: { content: string }) {
           h1: ({ children }) => <h2 className="mb-5 mt-12 scroll-mt-24 text-[28px] font-semibold text-ink sm:text-[32px]">{children}</h2>,
           h2: ({ children }) => <h3 className="mb-4 mt-11 scroll-mt-24 text-[24px] font-semibold text-ink sm:text-[28px]">{children}</h3>,
           h3: ({ children }) => <h4 className="mb-3 mt-9 scroll-mt-24 text-[20px] font-semibold text-ink sm:text-[22px]">{children}</h4>,
-          p: ({ children }) => <p className="my-6 break-words">{children}</p>,
+          p: ({ node, children }) => {
+            const onlyChild = node?.children.length === 1 ? node.children[0] : null
+            const href = onlyChild?.type === 'element' && onlyChild.tagName === 'a'
+              ? onlyChild.properties.href
+              : null
+            if (typeof href === 'string' && readBilibiliVideoEmbed(href)) {
+              return <BilibiliVideo href={href} />
+            }
+            return <p className="my-6 break-words">{children}</p>
+          },
           a: ({ href, children }) => (
             <MarkdownLink
               href={href}
