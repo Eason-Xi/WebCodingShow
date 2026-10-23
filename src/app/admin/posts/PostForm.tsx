@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, type KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { estimateReadingTime, slugifyBlogTitle } from '@/lib/blog-post'
+import { estimateReadingTime, insertMarkdownImage, slugifyBlogTitle } from '@/lib/blog-post'
 import {
   AlertCircle,
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   Eye,
   FileText,
   Image as ImageIcon,
+  ImagePlus,
   Pencil,
   RotateCcw,
   Save,
@@ -133,7 +134,10 @@ const EMPTY_FORM_SNAPSHOT = createFormSnapshot({
 export function PostForm({ postId }: { postId?: string }) {
   const router = useRouter()
   const isEdit = Boolean(postId)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const coverFileInputRef = useRef<HTMLInputElement>(null)
+  const contentImageInputRef = useRef<HTMLInputElement>(null)
+  const contentTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const contentImageSelectionRef = useRef({ start: 0, end: 0 })
   const errorRef = useRef<HTMLDivElement>(null)
   const writeTabRef = useRef<HTMLButtonElement>(null)
   const previewTabRef = useRef<HTMLButtonElement>(null)
@@ -152,7 +156,8 @@ export function PostForm({ postId }: { postId?: string }) {
   const [publishedAt, setPublishedAt] = useState('')
   const [editorMode, setEditorMode] = useState<'write' | 'preview'>('write')
   const [loading, setLoading] = useState(isEdit)
-  const [uploading, setUploading] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadingContentImage, setUploadingContentImage] = useState(false)
   const [submittingStatus, setSubmittingStatus] = useState<PostStatus | null>(null)
   const [imageError, setImageError] = useState(false)
   const [error, setError] = useState('')
@@ -173,6 +178,7 @@ export function PostForm({ postId }: { postId?: string }) {
     publishedAt,
   }), [category, content, cover, excerpt, featured, publishedAt, slug, tagsInput, title])
   const isDirty = savedSnapshot !== null && formSnapshot !== savedSnapshot
+  const isUploading = uploadingCover || uploadingContentImage
 
   useEffect(() => {
     if (!isDirty) return
@@ -300,29 +306,69 @@ export function PostForm({ postId }: { postId?: string }) {
     selectEditorMode(nextMode, true)
   }
 
-  const handleUpload = async (file?: File) => {
+  const uploadImage = async (file: File, fallbackError: string): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    })
+    const payload = await response.json().catch(() => null)
+    if (!response.ok || !payload?.url) throw new Error(payload?.error || fallbackError)
+    return payload.url
+  }
+
+  const handleCoverUpload = async (file?: File) => {
     if (!file) return
 
-    setUploading(true)
+    setUploadingCover(true)
     setError('')
+    setSuccess('')
     setImageError(false)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-      const payload = await response.json().catch(() => null)
-      if (!response.ok || !payload?.url) throw new Error(payload?.error || '上传封面失败')
-
-      setCover(payload.url)
+      setCover(await uploadImage(file, '上传封面失败'))
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '上传封面失败')
     } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      setUploadingCover(false)
+      if (coverFileInputRef.current) coverFileInputRef.current.value = ''
+    }
+  }
+
+  const openContentImagePicker = () => {
+    const textarea = contentTextareaRef.current
+    contentImageSelectionRef.current = textarea
+      ? { start: textarea.selectionStart, end: textarea.selectionEnd }
+      : { start: content.length, end: content.length }
+    setEditorMode('write')
+    contentImageInputRef.current?.click()
+  }
+
+  const handleContentImageUpload = async (file?: File) => {
+    if (!file) return
+
+    setUploadingContentImage(true)
+    setError('')
+    setSuccess('')
+    try {
+      const url = await uploadImage(file, '上传正文图片失败')
+      const alt = file.name.replace(/\.[^.]+$/, '').trim() || '文章图片'
+      const selection = contentImageSelectionRef.current
+      const insertion = insertMarkdownImage(content, url, alt, selection.start, selection.end)
+      setContent(insertion.content)
+      setEditorMode('write')
+      setSuccess('图片已上传并插入正文。')
+      window.requestAnimationFrame(() => {
+        const textarea = contentTextareaRef.current
+        textarea?.focus()
+        textarea?.setSelectionRange(insertion.cursor, insertion.cursor)
+      })
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : '上传正文图片失败')
+    } finally {
+      setUploadingContentImage(false)
+      if (contentImageInputRef.current) contentImageInputRef.current.value = ''
     }
   }
 
@@ -537,37 +583,56 @@ export function PostForm({ postId }: { postId?: string }) {
               <h2 className="text-sm font-semibold text-ink">Markdown 正文</h2>
               <p className="mt-1 text-xs text-ink-3">支持标题、列表、表格、引用、代码块和图片。</p>
             </div>
-            <div className="grid grid-cols-2 rounded-btn bg-subtle p-1" role="tablist" aria-label="正文编辑模式">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                ref={contentImageInputRef}
+                id="post-content-image"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                className="hidden"
+                onChange={(event) => void handleContentImageUpload(event.target.files?.[0])}
+              />
               <button
-                ref={writeTabRef}
-                id="post-write-tab"
                 type="button"
-                role="tab"
-                aria-selected={editorMode === 'write'}
-                aria-controls="post-write-panel"
-                tabIndex={editorMode === 'write' ? 0 : -1}
-                onClick={() => selectEditorMode('write')}
-                onKeyDown={handleEditorTabKeyDown}
-                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-btn px-4 text-sm font-medium transition-colors ${editorMode === 'write' ? 'bg-surface text-ink shadow-soft' : 'text-ink-3 hover:text-ink'}`}
+                disabled={isUploading || Boolean(submittingStatus)}
+                onClick={openContentImagePicker}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-btn border border-line bg-surface px-4 text-sm font-medium text-ink-2 transition-colors hover:bg-subtle disabled:opacity-50"
               >
-                <Pencil className="h-4 w-4" />
-                编辑
+                <ImagePlus className="h-4 w-4" />
+                {uploadingContentImage ? '正在上传…' : '上传并插入图片'}
               </button>
-              <button
-                ref={previewTabRef}
-                id="post-preview-tab"
-                type="button"
-                role="tab"
-                aria-selected={editorMode === 'preview'}
-                aria-controls="post-preview-panel"
-                tabIndex={editorMode === 'preview' ? 0 : -1}
-                onClick={() => selectEditorMode('preview')}
-                onKeyDown={handleEditorTabKeyDown}
-                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-btn px-4 text-sm font-medium transition-colors ${editorMode === 'preview' ? 'bg-surface text-ink shadow-soft' : 'text-ink-3 hover:text-ink'}`}
-              >
-                <Eye className="h-4 w-4" />
-                预览
-              </button>
+              <div className="grid grid-cols-2 rounded-btn bg-subtle p-1" role="tablist" aria-label="正文编辑模式">
+                <button
+                  ref={writeTabRef}
+                  id="post-write-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected={editorMode === 'write'}
+                  aria-controls="post-write-panel"
+                  tabIndex={editorMode === 'write' ? 0 : -1}
+                  onClick={() => selectEditorMode('write')}
+                  onKeyDown={handleEditorTabKeyDown}
+                  className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-btn px-4 text-sm font-medium transition-colors ${editorMode === 'write' ? 'bg-surface text-ink shadow-soft' : 'text-ink-3 hover:text-ink'}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                  编辑
+                </button>
+                <button
+                  ref={previewTabRef}
+                  id="post-preview-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected={editorMode === 'preview'}
+                  aria-controls="post-preview-panel"
+                  tabIndex={editorMode === 'preview' ? 0 : -1}
+                  onClick={() => selectEditorMode('preview')}
+                  onKeyDown={handleEditorTabKeyDown}
+                  className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-btn px-4 text-sm font-medium transition-colors ${editorMode === 'preview' ? 'bg-surface text-ink shadow-soft' : 'text-ink-3 hover:text-ink'}`}
+                >
+                  <Eye className="h-4 w-4" />
+                  预览
+                </button>
+              </div>
             </div>
           </div>
 
@@ -576,16 +641,19 @@ export function PostForm({ postId }: { postId?: string }) {
               <div id="post-write-panel" role="tabpanel" aria-labelledby="post-write-tab" tabIndex={0}>
                 <label htmlFor="post-content" className="sr-only">Markdown 正文</label>
                 <textarea
+                  ref={contentTextareaRef}
                   id="post-content"
                   rows={22}
                   value={content}
                   onChange={(event) => setContent(event.target.value)}
+                  readOnly={uploadingContentImage}
+                  aria-busy={uploadingContentImage}
                   spellCheck
                   placeholder={'# 文章开场\n\n从问题、场景或一个具体瞬间开始…\n\n## 第一节\n\n写下你的思考。'}
                   className="min-h-[28rem] w-full resize-y rounded-btn border border-line-strong bg-canvas p-4 font-mono text-sm leading-7 text-ink outline-none transition-colors placeholder:text-ink-4 focus:border-line-strong focus:ring-2 focus:ring-ink/10 sm:p-5"
                 />
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
-                  <span>已输入 {content.length.toLocaleString('zh-CN')} 个字符</span>
+                  <span>已输入 {content.length.toLocaleString('zh-CN')} 个字符 · 图片会插入到当前光标位置</span>
                   <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />预计阅读 {readingTime} 分钟</span>
                 </div>
               </div>
@@ -619,20 +687,20 @@ export function PostForm({ postId }: { postId?: string }) {
                   className="min-h-11 min-w-0 flex-1 rounded-btn border border-line-strong bg-subtle px-3.5 py-2.5 font-mono text-xs text-ink outline-none focus:ring-2 focus:ring-ink/10"
                 />
                 <input
-                  ref={fileInputRef}
+                  ref={coverFileInputRef}
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif"
                   className="hidden"
-                  onChange={(event) => void handleUpload(event.target.files?.[0])}
+                  onChange={(event) => void handleCoverUpload(event.target.files?.[0])}
                 />
                 <button
                   type="button"
-                  disabled={uploading || Boolean(submittingStatus)}
-                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || Boolean(submittingStatus)}
+                  onClick={() => coverFileInputRef.current?.click()}
                   className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-btn border border-line px-4 py-2.5 text-sm font-medium text-ink-2 transition-colors hover:bg-subtle disabled:opacity-50"
                 >
                   <Upload className="h-4 w-4" />
-                  {uploading ? '上传中…' : '上传图片'}
+                  {uploadingCover ? '上传中…' : '上传图片'}
                 </button>
               </div>
               <p className="mt-2 text-xs leading-6 text-ink-3">支持 PNG、JPEG、WebP 和 GIF，单张不超过 4 MB。</p>
@@ -664,7 +732,7 @@ export function PostForm({ postId }: { postId?: string }) {
                 >
                   <X className="h-4 w-4" />
                 </button>
-                {uploading ? (
+                {uploadingCover ? (
                   <div className="absolute inset-0 grid place-items-center bg-black/55 text-sm font-medium text-white backdrop-blur-xs">正在上传并保存图片…</div>
                 ) : null}
               </div>
@@ -750,7 +818,7 @@ export function PostForm({ postId }: { postId?: string }) {
               type="submit"
               name="statusIntent"
               value="draft"
-              disabled={Boolean(submittingStatus) || uploading}
+              disabled={Boolean(submittingStatus) || isUploading}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-btn border border-line-strong bg-surface px-5 py-2.5 text-sm font-medium text-ink-2 transition-colors hover:bg-subtle disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
@@ -760,7 +828,7 @@ export function PostForm({ postId }: { postId?: string }) {
               type="submit"
               name="statusIntent"
               value="published"
-              disabled={Boolean(submittingStatus) || uploading}
+              disabled={Boolean(submittingStatus) || isUploading}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-btn bg-brand px-6 py-2.5 text-sm font-semibold text-brand-ink shadow-card transition-colors hover:bg-brand-hover disabled:opacity-50"
             >
               <Sparkles className="h-4 w-4" />

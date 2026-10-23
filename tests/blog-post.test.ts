@@ -7,6 +7,7 @@ import {
   blogPostResponse,
   decodeBlogRouteSlug,
   estimateReadingTime,
+  insertMarkdownImage,
   normalizeBlogCategory,
   normalizeBlogContent,
   normalizeBlogCover,
@@ -82,6 +83,22 @@ test('reading time accounts for mixed Chinese characters and Latin words', () =>
   assert.equal(estimateReadingTime('中'.repeat(401)), 2)
   assert.equal(estimateReadingTime(Array.from({ length: 201 }, () => 'word').join(' ')), 2)
   assert.equal(estimateReadingTime(`${'中'.repeat(200)} ${Array.from({ length: 100 }, () => 'word').join(' ')}`), 1)
+})
+
+test('uploaded images are inserted as standalone Markdown blocks', () => {
+  assert.deepEqual(insertMarkdownImage('', '/api/uploads/photo.webp', '现场图'), {
+    content: '![现场图](/api/uploads/photo.webp)\n\n',
+    cursor: 33,
+  })
+
+  const middle = insertMarkdownImage('开场段落后续段落', 'https://cdn.example.com/a.png', '示意图', 4, 4)
+  assert.equal(middle.content, '开场段落\n\n![示意图](https://cdn.example.com/a.png)\n\n后续段落')
+  assert.equal(middle.cursor, middle.content.indexOf('后续段落'))
+
+  assert.equal(
+    insertMarkdownImage('替换这里', '/image.png', '图[1]', 2, 4).content,
+    '替换\n\n![图\\[1\\]](/image.png)\n\n'
+  )
 })
 
 test('blog API responses expose tags as arrays without mutating other fields', () => {

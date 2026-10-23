@@ -206,6 +206,42 @@ export function estimateReadingTime(content: string): number {
   return Math.max(1, Math.ceil(cjkMatches.length / 400 + wordMatches.length / 200))
 }
 
+export interface MarkdownImageInsertion {
+  content: string
+  cursor: number
+}
+
+/** Insert an uploaded image as its own Markdown block and place the cursor after it. */
+export function insertMarkdownImage(
+  content: string,
+  url: string,
+  alt = '文章图片',
+  selectionStart = content.length,
+  selectionEnd = selectionStart
+): MarkdownImageInsertion {
+  const start = Math.min(Math.max(0, selectionStart), content.length)
+  const end = Math.min(Math.max(start, selectionEnd), content.length)
+  const before = content.slice(0, start)
+  const after = content.slice(end)
+  const safeAlt = (alt.trim() || '文章图片')
+    .replace(/\\/g, '\\\\')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+  const markdown = `![${safeAlt}](${url})`
+  const leading = before.length === 0 || before.endsWith('\n\n')
+    ? ''
+    : before.endsWith('\n') ? '\n' : '\n\n'
+  const trailing = after.startsWith('\n\n')
+    ? ''
+    : after.startsWith('\n') ? '\n' : '\n\n'
+  const insertion = `${leading}${markdown}${trailing}`
+
+  return {
+    content: `${before}${insertion}${after}`,
+    cursor: before.length + insertion.length,
+  }
+}
+
 export function blogPostResponse<T extends { tags: string }>(post: T): Omit<T, 'tags'> & { tags: string[] } {
   return { ...post, tags: readBlogTags(post.tags) }
 }
