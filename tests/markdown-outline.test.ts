@@ -1,6 +1,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { extractMarkdownOutline } from '../src/lib/markdown-outline'
+import { extractMarkdownOutline, markdownHeadingId } from '../src/lib/markdown-outline'
+
+test('builds a stable public heading id from the source line', () => {
+  assert.equal(markdownHeadingId(15), 'article-heading-15')
+})
 
 test('extracts ATX and setext headings with line and selection positions', () => {
   const markdown = [

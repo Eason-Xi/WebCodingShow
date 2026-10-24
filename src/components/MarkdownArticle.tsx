@@ -2,6 +2,11 @@ import type { ComponentPropsWithoutRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { readBilibiliVideoEmbed } from '@/lib/bilibili-video'
+import { markdownHeadingId } from '@/lib/markdown-outline'
+
+function headingId(line?: number) {
+  return line ? markdownHeadingId(line) : undefined
+}
 
 function MarkdownLink({ href, children, ...props }: ComponentPropsWithoutRef<'a'>) {
   const external = typeof href === 'string' && /^https?:\/\//i.test(href)
@@ -56,9 +61,12 @@ export function MarkdownArticle({ content }: { content: string }) {
         remarkPlugins={[remarkGfm]}
         skipHtml
         components={{
-          h1: ({ children }) => <h2 className="mb-5 mt-12 scroll-mt-24 text-[28px] font-semibold text-ink sm:text-[32px]">{children}</h2>,
-          h2: ({ children }) => <h3 className="mb-4 mt-11 scroll-mt-24 text-[24px] font-semibold text-ink sm:text-[28px]">{children}</h3>,
-          h3: ({ children }) => <h4 className="mb-3 mt-9 scroll-mt-24 text-[20px] font-semibold text-ink sm:text-[22px]">{children}</h4>,
+          h1: ({ node, children }) => <h2 id={headingId(node?.position?.start.line)} className="mb-5 mt-12 scroll-mt-24 text-[28px] font-semibold text-ink sm:text-[32px]">{children}</h2>,
+          h2: ({ node, children }) => <h3 id={headingId(node?.position?.start.line)} className="mb-4 mt-11 scroll-mt-24 text-[24px] font-semibold text-ink sm:text-[28px]">{children}</h3>,
+          h3: ({ node, children }) => <h4 id={headingId(node?.position?.start.line)} className="mb-3 mt-9 scroll-mt-24 text-[20px] font-semibold text-ink sm:text-[22px]">{children}</h4>,
+          h4: ({ node, children }) => <h5 id={headingId(node?.position?.start.line)} className="mb-3 mt-8 scroll-mt-24 text-[18px] font-semibold text-ink sm:text-[20px]">{children}</h5>,
+          h5: ({ node, children }) => <h6 id={headingId(node?.position?.start.line)} className="mb-3 mt-8 scroll-mt-24 text-[16px] font-semibold text-ink sm:text-[18px]">{children}</h6>,
+          h6: ({ node, children }) => <div id={headingId(node?.position?.start.line)} role="heading" aria-level={6} className="mb-3 mt-7 scroll-mt-24 text-[15px] font-semibold text-ink sm:text-[17px]">{children}</div>,
           p: ({ node, children }) => {
             const onlyChild = node?.children.length === 1 ? node.children[0] : null
             const href = onlyChild?.type === 'element' && onlyChild.tagName === 'a'

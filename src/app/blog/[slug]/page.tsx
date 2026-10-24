@@ -8,7 +8,9 @@ import { blogPostPath, decodeBlogRouteSlug, readBlogTags } from '@/lib/blog-post
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/Footer'
 import { MarkdownArticle } from '@/components/MarkdownArticle'
+import { ArticleOutline } from '@/components/ArticleOutline'
 import { BlogCard, type BlogCardPost } from '@/components/BlogCard'
+import { extractMarkdownOutline } from '@/lib/markdown-outline'
 
 export const revalidate = 0
 
@@ -117,6 +119,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const olderPost = currentIndex >= 0 && currentIndex < orderedPosts.length - 1 ? orderedPosts[currentIndex + 1] : null
   const publishedAt = post.publishedAt || post.createdAt
   const tags = readBlogTags(post.tags)
+  const outline = extractMarkdownOutline(post.content)
   const safeProfile = profile || {
     name: 'Web 独立创作者',
     title: 'Full-Stack Developer & Creative Coder',
@@ -178,8 +181,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           ) : null}
 
-          <div className="mx-auto max-w-[760px] px-5 py-12 sm:px-8 sm:py-16">
-            <MarkdownArticle content={post.content} />
+          <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 sm:py-16">
+            <div className={outline.length > 0 ? 'grid gap-8 lg:grid-cols-[15rem_minmax(0,760px)] lg:items-start lg:justify-center xl:gap-12' : 'mx-auto max-w-[760px]'}>
+              {outline.length > 0 ? <ArticleOutline items={outline} /> : null}
+              <div className="min-w-0">
+                <MarkdownArticle content={post.content} />
+              </div>
+            </div>
           </div>
         </article>
 

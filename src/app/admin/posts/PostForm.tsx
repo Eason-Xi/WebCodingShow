@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, type KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { estimateReadingTime, insertMarkdownImage, slugifyBlogTitle } from '@/lib/blog-post'
-import { extractMarkdownOutline, type MarkdownOutlineItem } from '@/lib/markdown-outline'
-import { MarkdownOutline } from './MarkdownOutline'
 import {
   AlertCircle,
   ArrowLeft,
@@ -167,7 +165,6 @@ export function PostForm({ postId }: { postId?: string }) {
   const [savedSnapshot, setSavedSnapshot] = useState<string | null>(isEdit ? null : EMPTY_FORM_SNAPSHOT)
 
   const readingTime = useMemo(() => estimateReadingTime(content), [content])
-  const outline = useMemo(() => extractMarkdownOutline(content), [content])
   const tags = useMemo(() => parseTagsInput(tagsInput), [tagsInput])
   const formSnapshot = useMemo(() => createFormSnapshot({
     title,
@@ -307,18 +304,6 @@ export function PostForm({ postId }: { postId?: string }) {
         ? 'preview'
         : editorMode === 'write' ? 'preview' : 'write'
     selectEditorMode(nextMode, true)
-  }
-
-  const handleOutlineSelect = (item: MarkdownOutlineItem) => {
-    setEditorMode('write')
-    window.requestAnimationFrame(() => {
-      const textarea = contentTextareaRef.current
-      if (!textarea) return
-      textarea.focus()
-      textarea.setSelectionRange(item.offset, item.offset + item.sourceLength)
-      const lineHeight = Number.parseFloat(window.getComputedStyle(textarea).lineHeight) || 28
-      textarea.scrollTop = Math.max(0, (item.line - 1) * lineHeight - textarea.clientHeight / 3)
-    })
   }
 
   const uploadImage = async (file: File, fallbackError: string): Promise<string> => {
@@ -652,35 +637,31 @@ export function PostForm({ postId }: { postId?: string }) {
           </div>
 
           <div className="p-4 sm:p-6">
-            <div className="grid gap-4 lg:grid-cols-[15rem_minmax(0,1fr)] lg:items-start">
-              <MarkdownOutline items={outline} onSelect={handleOutlineSelect} />
-
-              {editorMode === 'write' ? (
-                <div id="post-write-panel" role="tabpanel" aria-labelledby="post-write-tab" tabIndex={0} className="min-w-0">
-                  <label htmlFor="post-content" className="sr-only">Markdown 正文</label>
-                  <textarea
-                    ref={contentTextareaRef}
-                    id="post-content"
-                    rows={22}
-                    value={content}
-                    onChange={(event) => setContent(event.target.value)}
-                    readOnly={uploadingContentImage}
-                    aria-busy={uploadingContentImage}
-                    spellCheck
-                    placeholder={'# 文章开场\n\n从问题、场景或一个具体瞬间开始…\n\n## 第一节\n\n写下你的思考。'}
-                    className="min-h-[28rem] w-full resize-y rounded-btn border border-line-strong bg-canvas p-4 font-mono text-sm leading-7 text-ink outline-none transition-colors placeholder:text-ink-4 focus:border-line-strong focus:ring-2 focus:ring-ink/10 sm:p-5"
-                  />
-                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
-                    <span>已输入 {content.length.toLocaleString('zh-CN')} 个字符 · {outline.length} 个标题 · 图片会插入到当前光标位置</span>
-                    <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />预计阅读 {readingTime} 分钟</span>
-                  </div>
+            {editorMode === 'write' ? (
+              <div id="post-write-panel" role="tabpanel" aria-labelledby="post-write-tab" tabIndex={0}>
+                <label htmlFor="post-content" className="sr-only">Markdown 正文</label>
+                <textarea
+                  ref={contentTextareaRef}
+                  id="post-content"
+                  rows={22}
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  readOnly={uploadingContentImage}
+                  aria-busy={uploadingContentImage}
+                  spellCheck
+                  placeholder={'# 文章开场\n\n从问题、场景或一个具体瞬间开始…\n\n## 第一节\n\n写下你的思考。'}
+                  className="min-h-[28rem] w-full resize-y rounded-btn border border-line-strong bg-canvas p-4 font-mono text-sm leading-7 text-ink outline-none transition-colors placeholder:text-ink-4 focus:border-line-strong focus:ring-2 focus:ring-ink/10 sm:p-5"
+                />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
+                  <span>已输入 {content.length.toLocaleString('zh-CN')} 个字符 · 图片会插入到当前光标位置</span>
+                  <span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" />预计阅读 {readingTime} 分钟</span>
                 </div>
-              ) : (
-                <div id="post-preview-panel" role="tabpanel" aria-labelledby="post-preview-tab" tabIndex={0} className="min-w-0">
-                  <MarkdownPreview content={content} />
-                </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div id="post-preview-panel" role="tabpanel" aria-labelledby="post-preview-tab" tabIndex={0}>
+                <MarkdownPreview content={content} />
+              </div>
+            )}
           </div>
         </section>
 

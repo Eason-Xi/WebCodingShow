@@ -17,6 +17,10 @@ const HTML_TAG_PATTERN = /<[^>]+>/g
 const ESCAPED_MARKDOWN_PATTERN = /\\([\\`*_[\]{}()#+.!~-])/g
 const EMPHASIS_MARK_PATTERN = /[*_~]/g
 
+export function markdownHeadingId(line: number): string {
+  return `article-heading-${line}`
+}
+
 function cleanHeadingText(value: string): string {
   return value
     .replace(CLOSING_HASHES_PATTERN, '')
