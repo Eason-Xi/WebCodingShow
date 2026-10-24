@@ -60,7 +60,7 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
   const [trackId, setTrackId] = useState(initialPreference.trackId)
   const [volume, setVolume] = useState(initialPreference.volume)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [playlistOpen, setPlaylistOpen] = useState(false)
 
   const currentIndex = useMemo(() => {
