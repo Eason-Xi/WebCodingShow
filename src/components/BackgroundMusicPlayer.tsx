@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { usePathname } from 'next/navigation'
 import {
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   Minimize2,
   Music2,
@@ -23,6 +24,8 @@ type StoredPreference = {
   trackId?: string
   volume?: number
 }
+
+type PlayResult = 'started' | 'blocked' | 'failed'
 
 const subscribeToHydration = () => () => undefined
 
@@ -68,7 +71,24 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
     return index >= 0 ? index : 0
   }, [settings.tracks, trackId])
   const currentTrack = settings.tracks[currentIndex]
+  const currentTrackId = currentTrack?.id
   const playerAvailable = hydrated && !pathname.startsWith('/admin') && settings.enabled && Boolean(currentTrack)
+
+  const play = useCallback(async (): Promise<PlayResult> => {
+    const audio = audioRef.current
+    if (!audio) return 'failed'
+
+    try {
+      await audio.play()
+      pendingPlay.current = false
+      return 'started'
+    } catch (error) {
+      setIsPlaying(false)
+      const blocked = error instanceof DOMException && error.name === 'NotAllowedError'
+      if (!blocked) pendingPlay.current = false
+      return blocked ? 'blocked' : 'failed'
+    }
+  }, [])
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume
@@ -96,18 +116,63 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
     return clearAutoHide
   }, [clearAutoHide, isExpanded, playerAvailable, playlistOpen, scheduleAutoHide])
 
+  useEffect(() => {
+    if (!playerAvailable || !currentTrackId) return
+
+    let disposed = false
+    let waitingForGesture = false
+    const pause = () => audioRef.current?.pause()
+    const removeAutoplayUnlock = () => {
+      if (!waitingForGesture) return
+      waitingForGesture = false
+      document.removeEventListener('pointerdown', unlockAutoplay, true)
+      document.removeEventListener('keydown', unlockAutoplay, true)
+    }
+    const unlockAutoplay = () => {
+      removeAutoplayUnlock()
+      if (document.visibilityState === 'visible') void play()
+    }
+    const waitForFirstGesture = () => {
+      if (disposed || waitingForGesture) return
+      waitingForGesture = true
+      document.addEventListener('pointerdown', unlockAutoplay, { capture: true, once: true, passive: true })
+      document.addEventListener('keydown', unlockAutoplay, { capture: true, once: true })
+    }
+    const autoplayIfVisible = async () => {
+      if (!settings.autoplay || document.visibilityState !== 'visible') return
+      pendingPlay.current = true
+      const result = await play()
+      if (!disposed && result === 'blocked') waitForFirstGesture()
+    }
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') pause()
+      else void autoplayIfVisible()
+    }
+    const handlePageShow = () => void autoplayIfVisible()
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('blur', pause)
+    window.addEventListener('focus', handlePageShow)
+    window.addEventListener('pagehide', pause)
+    window.addEventListener('pageshow', handlePageShow)
+    void autoplayIfVisible()
+
+    return () => {
+      disposed = true
+      removeAutoplayUnlock()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('blur', pause)
+      window.removeEventListener('focus', handlePageShow)
+      window.removeEventListener('pagehide', pause)
+      window.removeEventListener('pageshow', handlePageShow)
+      pause()
+    }
+  }, [currentTrackId, play, playerAvailable, settings.autoplay])
+
   if (!playerAvailable || !currentTrack) return null
 
   const savePreference = (nextTrackId = trackId, nextVolume = volume) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ trackId: nextTrackId, volume: nextVolume }))
-  }
-
-  const play = async () => {
-    try {
-      await audioRef.current?.play()
-    } catch {
-      setIsPlaying(false)
-    }
   }
 
   const selectTrack = (nextTrackId: string, shouldPlay = true) => {
@@ -146,7 +211,7 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
   return (
     <div
       className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 z-50 transition-[width] duration-300 motion-reduce:transition-none ${
-        isExpanded ? 'w-[min(280px,calc(100vw-2rem))]' : 'w-12'
+        isExpanded ? 'w-[min(280px,calc(100vw-2rem))]' : 'w-20'
       }`}
       onPointerEnter={clearAutoHide}
       onPointerLeave={() => {
@@ -170,7 +235,6 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
         }}
         onCanPlay={() => {
           if (pendingPlay.current) {
-            pendingPlay.current = false
             void play()
           }
         }}
@@ -180,18 +244,30 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
       />
 
       {!isExpanded ? (
-        <button
-          type="button"
-          onClick={() => setIsExpanded(true)}
-          className="relative grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-[#18181d]/95 text-amber-300 shadow-2xl backdrop-blur-xl transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none"
-          aria-label={`展开背景音乐播放器，当前曲目：${currentTrack.title}`}
-          title={currentTrack.title}
-        >
-          <Music2 className={`h-5 w-5 ${isPlaying ? 'animate-pulse motion-reduce:animate-none' : ''}`} strokeWidth={2.2} />
-          {isPlaying ? (
-            <span className="absolute bottom-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400 ring-2 ring-[#18181d]" aria-hidden="true" />
-          ) : null}
-        </button>
+        <div className="flex h-12 items-center gap-0.5 rounded-2xl border border-white/10 bg-[#18181d]/95 p-1 text-white shadow-2xl backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={() => (isPlaying ? audioRef.current?.pause() : void play())}
+            className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-300 text-[#282117] transition-transform hover:scale-[1.03] active:scale-95 motion-reduce:transition-none"
+            aria-label={isPlaying ? '暂停背景音乐' : '播放背景音乐'}
+            title={`${isPlaying ? '暂停' : '播放'}：${currentTrack.title}`}
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4" fill="currentColor" />
+            ) : (
+              <Play className="ml-0.5 h-4 w-4" fill="currentColor" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsExpanded(true)}
+            className="grid h-10 w-7 shrink-0 place-items-center rounded-xl text-white/50 transition-colors hover:bg-white/8 hover:text-white"
+            aria-label={`展开背景音乐播放器，当前曲目：${currentTrack.title}`}
+            title="展开播放器"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
       ) : (
         <>
           {playlistOpen ? (
