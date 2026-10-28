@@ -5,13 +5,14 @@ import { Hero } from '@/components/Hero'
 import { ProjectCard } from '@/components/ProjectCard'
 import { BlogCard } from '@/components/BlogCard'
 import { Footer } from '@/components/Footer'
-import { Sparkles, ArrowRight, Layers, LayoutGrid, BookOpenText } from 'lucide-react'
+import { PodcastCard } from '@/components/PodcastCard'
+import { Sparkles, ArrowRight, Layers, LayoutGrid, BookOpenText, Headphones } from 'lucide-react'
 
 // 服务端动态渲染确保后台新增后立即更新
 export const revalidate = 0
 
 export default async function HomePage() {
-  const [profile, featuredProjects, categories, totalPublishedCount, latestBlogPosts] = await Promise.all([
+  const [profile, featuredProjects, categories, totalPublishedCount, latestBlogPosts, latestPodcast] = await Promise.all([
     prisma.profile.findUnique({ where: { id: 'default' } }),
     prisma.project.findMany({
       where: {
@@ -57,6 +58,7 @@ export default async function HomePage() {
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }],
       take: 3,
     }),
+    prisma.podcastEpisode.findFirst({ include: { podcast: true }, orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }] }),
   ])
 
   const safeProfile = profile || {
@@ -151,6 +153,22 @@ export default async function HomePage() {
             )}
           </div>
         </section>
+
+        {latestPodcast ? (
+          <section className="border-t border-line" aria-labelledby="home-podcast-heading">
+            <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+              <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="mb-2.5 inline-flex items-center gap-1.5 text-[11.5px] font-semibold uppercase tracking-[0.14em] text-amber-700 dark:text-amber-400"><Headphones className="h-3.5 w-3.5" />Podcast</p>
+                  <h2 id="home-podcast-heading" className="text-[24px] font-semibold text-ink sm:text-[28px]">戴上耳机，听听新鲜事</h2>
+                  <p className="mt-2 text-[13.5px] leading-relaxed text-ink-2">来自订阅节目的最新声音，点击播放，边听边逛。</p>
+                </div>
+                <Link href="/podcasts" className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-[13.5px] font-medium text-ink-2 hover:text-ink">进入播客<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" /></Link>
+              </div>
+              <PodcastCard episode={latestPodcast} />
+            </div>
+          </section>
+        ) : null}
 
         {/* 4. 分类矩阵 */}
         <section className="border-t border-line">

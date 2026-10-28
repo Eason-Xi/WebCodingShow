@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import type { MusicSettingsPayload } from '@/lib/music'
 
+import { usePodcast } from './PodcastPlayer'
+
 const STORAGE_KEY = 'webcoding-music-player-v1'
 const AUTO_HIDE_DELAY = 6000
 
@@ -54,6 +56,7 @@ function readPreference(settings: MusicSettingsPayload): Required<StoredPreferen
 
 export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPayload }) {
   const pathname = usePathname()
+  const { track: podcastTrack } = usePodcast()
   const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false)
   const initialPreference = useMemo(() => readPreference(settings), [settings])
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -72,7 +75,7 @@ export function BackgroundMusicPlayer({ settings }: { settings: MusicSettingsPay
   }, [settings.tracks, trackId])
   const currentTrack = settings.tracks[currentIndex]
   const currentTrackId = currentTrack?.id
-  const playerAvailable = hydrated && !pathname.startsWith('/admin') && settings.enabled && Boolean(currentTrack)
+  const playerAvailable = hydrated && !podcastTrack && !pathname.startsWith('/admin') && settings.enabled && Boolean(currentTrack)
 
   const play = useCallback(async (): Promise<PlayResult> => {
     const audio = audioRef.current

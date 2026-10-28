@@ -11,14 +11,15 @@ export function Navbar() {
     { name: '首页', href: '/' },
     { name: '作品', href: '/projects' },
     { name: '博客', href: '/blog' },
+    { name: '播客', href: '/podcasts' },
   ]
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-line bg-canvas/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-8">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-1 px-3 sm:gap-4 sm:px-8">
         {/* 品牌 */}
         <Link href="/" aria-label="WebCoding 首页" className="group flex shrink-0 items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-brand text-brand-ink shadow-soft transition-transform duration-300 group-hover:scale-[1.05]">
+          <span className="grid h-8 w-8 place-items-center rounded-[11px] bg-brand text-brand-ink shadow-soft transition-transform duration-300 group-hover:scale-[1.05] sm:h-9 sm:w-9">
             <Code2 className="h-[18px] w-[18px]" strokeWidth={2.2} />
           </span>
           <span className="hidden flex-col justify-center leading-none sm:flex">
@@ -32,7 +33,7 @@ export function Navbar() {
         </Link>
 
         {/* 导航 */}
-        <nav className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <nav aria-label="主导航" className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           {links.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`))
             return (
@@ -40,7 +41,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-btn px-2 py-2 text-[13px] font-medium transition-colors duration-200 sm:px-3.5 sm:text-[13.5px] ${
+                className={`inline-flex min-h-11 items-center whitespace-nowrap rounded-btn px-1.5 py-2 text-[12px] font-medium transition-colors duration-200 sm:px-3.5 sm:text-[13.5px] ${
                   isActive
                     ? 'bg-subtle text-ink'
                     : 'text-ink-2 hover:bg-subtle hover:text-ink'

@@ -88,3 +88,33 @@ model MusicSettings {
   tracks         String   @default("[]")
   updatedAt      DateTime @updatedAt
 }
+
+model Podcast {
+  id          String   @id @default(cuid())
+  rssUrl      String   @unique
+  title       String
+  description String
+  author      String?
+  cover       String?
+  website     String?
+  syncedAt    DateTime @default(now())
+  episodes    PodcastEpisode[]
+}
+
+model PodcastEpisode {
+  id          String   @id @default(cuid())
+  podcastId   String
+  podcast     Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
+  guid        String
+  title       String
+  description String
+  audioUrl    String
+  cover       String?
+  duration    Int?
+  publishedAt DateTime?
+  website     String?
+  createdAt   DateTime @default(now())
+
+  @@unique([podcastId, guid])
+  @@index([publishedAt])
+}

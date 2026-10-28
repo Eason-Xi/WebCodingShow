@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { BackgroundMusicPlayer } from "@/components/BackgroundMusicPlayer";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_MUSIC_SETTINGS, settingsFromRecord } from "@/lib/music";
+import { PodcastProvider } from "@/components/PodcastPlayer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,8 +43,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        {children}
-        <BackgroundMusicPlayer settings={musicSettings} />
+        <PodcastProvider>
+          {children}
+          <BackgroundMusicPlayer settings={musicSettings} />
+        </PodcastProvider>
       </body>
     </html>
   );
