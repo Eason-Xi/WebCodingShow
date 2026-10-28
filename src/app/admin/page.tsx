@@ -1,3 +1,4 @@
+import { AnalyticsOverview } from './AnalyticsOverview'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import {
@@ -109,6 +110,8 @@ export default async function AdminDashboardPage() {
           )
         })}
       </div>
+
+      <AnalyticsOverview />
 
       {/* 最近动态 */}
       <div className="overflow-hidden rounded-card border border-line bg-surface shadow-soft">

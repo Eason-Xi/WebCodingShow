@@ -13,17 +13,19 @@ const file = process.argv[3] || 'backups/portfolio.json'
 const mode = process.argv[2]
 
 async function snapshot() {
-  const [profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes] = await Promise.all([
+  const [profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics] = await Promise.all([
     prisma.profile.findMany(), prisma.category.findMany(), prisma.tag.findMany(),
     prisma.project.findMany({ include: { tags: { select: { id: true } } } }),
     prisma.blogPost.findMany(),
     prisma.musicSettings.findMany(), prisma.podcast.findMany(), prisma.podcastEpisode.findMany(),
+    prisma.contentMetricDay.findMany(),
   ])
-  return { version: 4 as const, profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes }
+  return { version: 5 as const, profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics }
 }
 
 type CurrentSnapshot = Awaited<ReturnType<typeof snapshot>>
-type LegacySnapshotV3 = Omit<CurrentSnapshot, 'version' | 'podcasts' | 'podcastEpisodes'> & { version: 3 }
+type LegacySnapshotV4 = Omit<CurrentSnapshot, 'version' | 'contentMetrics'> & { version: 4 }
+type LegacySnapshotV3 = Omit<LegacySnapshotV4, 'version' | 'podcasts' | 'podcastEpisodes'> & { version: 3 }
 type LegacySnapshotV2 = Omit<LegacySnapshotV3, 'version' | 'musicSettings'> & {
   version: 2
   musicSettings?: never
@@ -32,7 +34,7 @@ type LegacySnapshotV1 = Omit<LegacySnapshotV2, 'version' | 'posts'> & {
   version: 1
   posts?: never
 }
-type Snapshot = CurrentSnapshot | LegacySnapshotV3 | LegacySnapshotV2 | LegacySnapshotV1
+type Snapshot = CurrentSnapshot | LegacySnapshotV4 | LegacySnapshotV3 | LegacySnapshotV2 | LegacySnapshotV1
 
 async function main() {
   if (mode === 'export') {
@@ -48,17 +50,19 @@ async function main() {
     throw new Error('Import is only supported into PostgreSQL')
   }
   const data = JSON.parse(await readFile(file, 'utf8')) as Snapshot
-  if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4) throw new Error('Unsupported snapshot version')
+  if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4 && data.version !== 5) throw new Error('Unsupported snapshot version')
   if (data.version !== 1 && !Array.isArray(data.posts)) throw new Error('Snapshot posts are invalid')
-  if ((data.version === 3 || data.version === 4) && !Array.isArray(data.musicSettings)) throw new Error('Snapshot music settings are invalid')
+  if ((data.version === 3 || data.version === 4 || data.version === 5) && !Array.isArray(data.musicSettings)) throw new Error('Snapshot music settings are invalid')
   const posts: CurrentSnapshot['posts'] = data.version === 1 ? [] : data.posts
-  const musicSettings: CurrentSnapshot['musicSettings'] = (data.version === 3 || data.version === 4) ? data.musicSettings : []
-  if (data.version === 4 && (!Array.isArray(data.podcasts) || !Array.isArray(data.podcastEpisodes))) throw new Error('Snapshot podcasts are invalid')
-  const podcasts = data.version === 4 ? data.podcasts : []
-  const podcastEpisodes = data.version === 4 ? data.podcastEpisodes : []
+  const musicSettings: CurrentSnapshot['musicSettings'] = (data.version === 3 || data.version === 4 || data.version === 5) ? data.musicSettings : []
+  if ((data.version === 4 || data.version === 5) && (!Array.isArray(data.podcasts) || !Array.isArray(data.podcastEpisodes))) throw new Error('Snapshot podcasts are invalid')
+  const podcasts = (data.version === 4 || data.version === 5) ? data.podcasts : []
+  const podcastEpisodes = (data.version === 4 || data.version === 5) ? data.podcastEpisodes : []
+  if (data.version === 5 && !Array.isArray(data.contentMetrics)) throw new Error('Snapshot content metrics are invalid')
+  const contentMetrics = data.version === 5 ? data.contentMetrics : []
   // A first-time migration only: never replace existing production content.
   const existing = await snapshot()
-  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length || existing.posts.length || existing.musicSettings.length || existing.podcasts.length || existing.podcastEpisodes.length) {
+  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length || existing.posts.length || existing.musicSettings.length || existing.podcasts.length || existing.podcastEpisodes.length || existing.contentMetrics.length) {
     throw new Error('Target database must be empty; existing content was not changed')
   }
   const images = new Map<string, string>()
@@ -122,6 +126,7 @@ async function main() {
       for (const setting of musicSettings) await tx.musicSettings.create({ data: setting })
       for (const podcast of podcasts) await tx.podcast.create({ data: podcast })
       for (const episode of podcastEpisodes) await tx.podcastEpisode.create({ data: episode })
+      for (const metric of contentMetrics) await tx.contentMetricDay.create({ data: metric })
     }, { timeout: 60000 })
     console.log(`Imported ${data.projects.length} projects, ${posts.length} posts and ${musicSettings.length} music settings; migrated ${images.size} local images and ${audio.size} local audio files`)
   } finally {

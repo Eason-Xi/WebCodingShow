@@ -21,6 +21,10 @@ interface Category {
 }
 
 interface ProjectItem {
+  viewCount: number
+  todayViews: number
+  videoClickCount: number
+  experienceClickCount: number
   id: string
   title: string
   url: string
@@ -40,6 +44,7 @@ export function ProjectsTable() {
 
   // 筛选与搜索
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState('order')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [page, setPage] = useState(1)
@@ -70,7 +75,7 @@ export function ProjectsTable() {
       params.set('status', selectedStatus)
       params.set('page', page.toString())
       params.set('limit', '10')
-      params.set('sort', 'order')
+      params.set('sort', sort)
 
       const res = await fetch(`/api/projects?${params.toString()}`)
       const data = await res.json()
@@ -89,7 +94,7 @@ export function ProjectsTable() {
   useEffect(() => {
     const timer = setTimeout(fetchProjects, 200)
     return () => clearTimeout(timer)
-  }, [search, selectedCategory, selectedStatus, page])
+  }, [search, selectedCategory, selectedStatus, page, sort])
 
   // 快速切换发布状态
   const toggleStatus = async (item: ProjectItem) => {
@@ -168,7 +173,7 @@ export function ProjectsTable() {
       </div>
 
       {/* 筛选过滤工具条 */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
         <div className="relative sm:col-span-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3" />
           <input
@@ -218,7 +223,11 @@ export function ProjectsTable() {
             <option value="draft">草稿箱</option>
           </select>
         </div>
+        <select aria-label="项目排序" value={sort} onChange={e => { setSort(e.target.value); setPage(1) }} className="min-h-11 rounded-btn border border-line bg-surface px-3 text-sm text-ink">
+          <option value="order">按排序权重</option><option value="views">按累计浏览量</option><option value="newest">最新作品</option>
+        </select>
       </div>
+      <p className="mb-4 text-xs leading-6 text-ink-3">浏览统计从功能启用后累计；今日按台北时间计算。排除已登录管理员，同一浏览器同类操作 30 分钟内计一次。</p>
 
       {/* 表格主体 */}
       <div className="rounded-card border border-line bg-surface overflow-hidden shadow-soft">
@@ -232,13 +241,15 @@ export function ProjectsTable() {
                 <th className="py-3.5 px-4">状态</th>
                 <th className="py-3.5 px-4">精选</th>
                 <th className="py-3.5 px-4">权重</th>
+                <th className="py-3.5 px-4">浏览量</th>
+                <th className="py-3.5 px-4">点击量</th>
                 <th className="py-3.5 px-4 text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line text-[13.5px]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-ink-3">
+                  <td colSpan={8} className="py-12 text-center text-ink-3">
                     加载数据中...
                   </td>
                 </tr>
@@ -325,6 +336,8 @@ export function ProjectsTable() {
                       {item.sortOrder}
                     </td>
 
+                    <td data-label="浏览量" className="py-3.5 px-4 tabular-nums whitespace-nowrap"><div><p>{item.viewCount.toLocaleString()}</p><p className="mt-1 text-xs text-ink-3">今日 {item.todayViews.toLocaleString()}</p></div></td>
+                    <td data-label="点击量" className="py-3.5 px-4 text-xs whitespace-nowrap"><div><p>体验 {item.experienceClickCount.toLocaleString()}</p><p className="mt-1 text-ink-3">视频 {item.videoClickCount.toLocaleString()}</p></div></td>
                     {/* 操作按钮 */}
                     <td data-label="操作" className="py-3.5 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1.5">
@@ -348,7 +361,7 @@ export function ProjectsTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-ink-3 text-sm">
+                  <td colSpan={8} className="py-12 text-center text-ink-3 text-sm">
                     未检索到符合条件的项目
                   </td>
                 </tr>

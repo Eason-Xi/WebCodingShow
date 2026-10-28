@@ -19,6 +19,8 @@ type PostStatus = 'draft' | 'published'
 const POSTS_PAGE_SIZE = 20
 
 interface BlogPostItem {
+  viewCount: number
+  todayViews: number
   id: string
   title: string
   slug: string
@@ -68,6 +70,7 @@ function formatDate(value?: string | null) {
 export function PostsTable() {
   const [posts, setPosts] = useState<BlogPostItem[]>([])
   const [search, setSearch] = useState('')
+  const [sort, setSort] = useState('newest')
   const [status, setStatus] = useState<'all' | PostStatus>('all')
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({ total: 0, totalPages: 0 })
@@ -94,6 +97,7 @@ export function PostsTable() {
 
       try {
         const query = new URLSearchParams({ limit: String(POSTS_PAGE_SIZE), page: String(page) })
+        query.set('sort', sort)
         if (search.trim()) query.set('search', search.trim())
         if (status !== 'all') query.set('status', status)
 
@@ -132,7 +136,7 @@ export function PostsTable() {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [page, reloadKey, search, status])
+  }, [page, reloadKey, search, status, sort])
 
   useEffect(() => {
     if (!deleteDialogOpen) return
@@ -247,7 +251,7 @@ export function PostsTable() {
         </div>
       ) : null}
 
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_13rem]">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_10rem]">
         <label className="relative block">
           <span className="sr-only">搜索文章</span>
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
@@ -277,8 +281,12 @@ export function PostsTable() {
             <option value="draft">草稿</option>
           </select>
         </label>
+        <select aria-label="文章排序" value={sort} onChange={e => { setSort(e.target.value); setPage(1) }} className="min-h-11 rounded-btn border border-line bg-surface px-3 text-sm text-ink">
+          <option value="newest">最新发布</option><option value="views">按累计浏览量</option><option value="updated">最近编辑</option>
+        </select>
       </div>
 
+      <p className="mb-4 text-xs leading-6 text-ink-3">浏览统计从功能启用后累计；今日按台北时间计算。排除已登录管理员，同一浏览器 30 分钟内重复浏览计一次。</p>
       <div className="overflow-hidden rounded-card border border-line bg-surface shadow-soft">
         <div className="overflow-x-auto">
           <table className="admin-responsive-table admin-project-table w-full border-collapse text-left" aria-label="文章列表">
@@ -289,13 +297,14 @@ export function PostsTable() {
                 <th className="px-4 py-3.5">状态</th>
                 <th className="px-4 py-3.5">阅读</th>
                 <th className="px-4 py-3.5">日期</th>
+                <th className="px-4 py-3.5">浏览量</th>
                 <th className="px-4 py-3.5 text-right">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line text-[13.5px]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-14 text-center text-sm text-ink-3">
+                  <td colSpan={7} className="py-14 text-center text-sm text-ink-3">
                     正在加载文章…
                   </td>
                 </tr>
@@ -343,6 +352,7 @@ export function PostsTable() {
                       </td>
                       <td data-label="阅读" className="whitespace-nowrap px-4 py-4 text-ink-2">{Math.max(1, post.readingTime || 1)} 分钟</td>
                       <td data-label="日期" className="whitespace-nowrap px-4 py-4 text-ink-2">{formatDate(post.publishedAt || post.updatedAt)}</td>
+                      <td data-label="浏览量" className="whitespace-nowrap px-4 py-4 tabular-nums"><div><p>{post.viewCount.toLocaleString()}</p><p className="mt-1 text-xs text-ink-3">今日 {post.todayViews.toLocaleString()}</p></div></td>
                       <td data-label="操作" className="whitespace-nowrap px-4 py-4 text-right">
                         <div className="inline-flex items-center gap-1.5">
                           {post.status === 'published' ? (
@@ -383,7 +393,7 @@ export function PostsTable() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-14 text-center">
+                  <td colSpan={7} className="py-14 text-center">
                     <FileText className="mx-auto mb-3 h-8 w-8 text-ink-4" />
                     <p className="text-sm font-medium text-ink">没有找到文章</p>
                     <p className="mt-1 text-xs text-ink-3">调整搜索条件，或写一篇新文章。</p>

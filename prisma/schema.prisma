@@ -38,6 +38,10 @@ model Tag {
 }
 
 model Project {
+  viewCount Int @default(0)
+  videoClickCount Int @default(0)
+  experienceClickCount Int @default(0)
+
   id          String    @id @default(cuid())
   title       String
   slug        String    @unique
@@ -60,6 +64,8 @@ model Project {
 }
 
 model BlogPost {
+  viewCount Int @default(0)
+
   id          String    @id @default(cuid())
   title       String
   slug        String    @unique
@@ -102,6 +108,9 @@ model Podcast {
 }
 
 model PodcastEpisode {
+  viewCount Int @default(0)
+  playCount Int @default(0)
+
   id          String   @id @default(cuid())
   podcastId   String
   podcast     Podcast  @relation(fields: [podcastId], references: [id], onDelete: Cascade)
@@ -117,4 +126,26 @@ model PodcastEpisode {
 
   @@unique([podcastId, guid])
   @@index([publishedAt])
+}
+
+// Daily aggregates retain historical traffic even if content is later deleted.
+model ContentMetricDay {
+  contentType String
+  contentId String
+  day String
+  views Int @default(0)
+  plays Int @default(0)
+  videoClicks Int @default(0)
+  experienceClicks Int @default(0)
+
+  @@id([contentType, contentId, day])
+  @@index([day])
+}
+
+// Short-lived anonymous deduplication receipts; no IP addresses are stored.
+model AnalyticsReceipt {
+  id String @id
+  expiresAt DateTime
+
+  @@index([expiresAt])
 }

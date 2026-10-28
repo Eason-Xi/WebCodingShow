@@ -1,3 +1,4 @@
+import { todayMetrics } from '@/lib/analytics'
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
@@ -84,7 +85,8 @@ export async function GET(req: NextRequest) {
       { publishedAt: 'desc' },
       { createdAt: 'desc' },
     ]
-    if (sort === 'oldest') orderBy = [{ publishedAt: 'asc' }, { createdAt: 'asc' }]
+    if (sort === 'views' && authed) orderBy = [{ viewCount: 'desc' }, { id: 'asc' }]
+    else if (sort === 'oldest') orderBy = [{ publishedAt: 'asc' }, { createdAt: 'asc' }]
     else if (sort === 'updated') orderBy = [{ updatedAt: 'desc' }]
     else if (sort === 'title') orderBy = [{ title: 'asc' }]
     else if (sort !== 'newest' && sort !== 'featured') {
@@ -103,8 +105,9 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
+    const today = authed ? await todayMetrics('post', posts.map(p => p.id)) : new Map()
     return NextResponse.json({
-      posts: posts.map(blogPostResponse),
+      posts: posts.map(p => ({ ...blogPostResponse(p), ...(authed ? { todayViews: today.get(p.id)?.views ?? 0 } : {}) })),
       pagination: {
         total,
         page,

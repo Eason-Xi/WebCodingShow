@@ -1,3 +1,4 @@
+import { todayMetrics } from '@/lib/analytics'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAuthenticated } from '@/lib/auth'
@@ -10,7 +11,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const search = searchParams.get('search')?.trim() || ''
     const categoryId = searchParams.get('categoryId') || ''
-    const status = (await isAuthenticated())
+    const authed = await isAuthenticated()
+    const status = authed
       ? searchParams.get('status') || 'published'
       : 'published'
     const featured = searchParams.get('featured')
@@ -47,7 +49,9 @@ export async function GET(req: NextRequest) {
 
     // 排序逻辑
     let orderBy: Prisma.ProjectOrderByWithRelationInput[] = [{ sortOrder: 'desc' }, { createdAt: 'desc' }]
-    if (sort === 'newest') {
+    if (sort === 'views' && authed) {
+      orderBy = [{ viewCount: 'desc' }, { id: 'asc' }]
+    } else if (sort === 'newest') {
       orderBy = [{ completedAt: 'desc' }, { createdAt: 'desc' }]
     } else if (sort === 'oldest') {
       orderBy = [{ completedAt: 'asc' }, { createdAt: 'asc' }]
@@ -71,8 +75,9 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
+    const today = authed ? await todayMetrics('project', projects.map(p => p.id)) : new Map()
     return NextResponse.json({
-      projects,
+      projects: projects.map(p => ({ ...p, ...(authed ? { todayViews: today.get(p.id)?.views ?? 0 } : {}) })),
       pagination: {
         total,
         page,

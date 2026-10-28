@@ -1,3 +1,4 @@
+import { ContentView } from '@/components/ContentAnalytics'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { cache } from 'react'
@@ -132,6 +133,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <ContentView contentType="post" contentId={post.id} />
       <Navbar />
       <main className="flex-1">
         <article>

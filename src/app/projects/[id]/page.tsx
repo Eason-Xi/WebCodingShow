@@ -1,3 +1,4 @@
+import { ContentView, TrackedProjectLink } from '@/components/ContentAnalytics'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
@@ -25,7 +26,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!project) notFound()
   const videoUrl = readProjectVideoUrl(project.videoUrl)
   return <div className="flex min-h-screen flex-col">
-    <Navbar />
+    <ContentView contentType="project" contentId={project.id} /><Navbar />
     <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
       <Link href="/projects" className="mb-8 inline-flex min-h-11 items-center gap-2 text-sm text-ink-2 hover:text-ink"><ArrowLeft size={16} />返回作品库</Link>
       <div className="mb-8 max-w-3xl">
@@ -43,8 +44,8 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
         </div>
         <aside className="min-w-0 space-y-6">
           <div className="space-y-3 rounded-card border border-line bg-surface p-5">
-            <a href={project.url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-2 rounded-btn bg-brand px-4 py-3 text-sm font-medium text-brand-ink">在线体验<ExternalLink size={16} /></a>
-            {videoUrl && <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className="flex min-h-11 items-center justify-center gap-2 rounded-btn border border-line px-4 py-3 text-sm text-ink-2 hover:bg-subtle"><Play size={16} />观看视频<ExternalLink size={14} /></a>}
+            <TrackedProjectLink contentId={project.id} event="experienceClick" href={project.url} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-2 rounded-btn bg-brand px-4 py-3 text-sm font-medium text-brand-ink">在线体验<ExternalLink size={16} /></TrackedProjectLink>
+            {videoUrl && <TrackedProjectLink contentId={project.id} event="videoClick" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className="flex min-h-11 items-center justify-center gap-2 rounded-btn border border-line px-4 py-3 text-sm text-ink-2 hover:bg-subtle"><Play size={16} />观看视频<ExternalLink size={14} /></TrackedProjectLink>}
             {project.sourceUrl && <a href={project.sourceUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-center gap-2 rounded-btn border border-line px-4 py-3 text-sm text-ink-2"><GitBranch size={16} />查看源码</a>}
           </div>
           {!!project.tags.length && <section className="rounded-card border border-line bg-surface p-5">

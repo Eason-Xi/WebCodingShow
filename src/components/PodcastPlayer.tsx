@@ -1,5 +1,6 @@
 'use client'
 import { createContext, useContext, useRef, useState, type ReactNode } from 'react'
+import { trackContent } from './ContentAnalytics'
 import { Play, X, Headphones } from 'lucide-react'
 import type { AudioEpisode } from '@/lib/podcasts'
 
@@ -10,9 +11,11 @@ export function PodcastProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState('')
   const audio = useRef<HTMLAudioElement>(null)
   const speed = useRef(1)
+  const playingEpisode = useRef<AudioEpisode | null>(null)
   const play = (episode: AudioEpisode) => {
     setError('')
     setTrack(episode)
+    playingEpisode.current = episode
     const element = audio.current
     if (!element) return
     if (element.getAttribute('src') !== episode.audioUrl) { element.src = episode.audioUrl; element.load() }
@@ -24,8 +27,8 @@ export function PodcastProvider({ children }: { children: ReactNode }) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 sm:flex-nowrap">
         <Headphones className="hidden h-6 w-6 shrink-0 text-amber-600 sm:block" />
         <div className="min-w-0 flex-1 sm:max-w-xs"><p className="truncate text-[13px] font-semibold">{track?.title}</p><p className="text-xs text-ink-2">{track?.showTitle}</p></div>
-        <button aria-label="关闭播客播放器" onClick={() => { audio.current?.pause(); setTrack(null) }} className="order-2 grid h-11 w-11 place-items-center rounded-btn hover:bg-subtle sm:order-4"><X className="h-4 w-4" /></button>
-        <audio ref={audio} controls preload="none" aria-label="播客音频播放器" onLoadedMetadata={() => { if (audio.current) audio.current.playbackRate = speed.current }} onPlaying={() => setError('')} onError={() => setError('音频加载失败，请检查网络或稍后重试。')} className="order-3 h-11 w-full sm:flex-1" />
+        <button aria-label="关闭播客播放器" onClick={() => { audio.current?.pause(); setTrack(null); playingEpisode.current = null }} className="order-2 grid h-11 w-11 place-items-center rounded-btn hover:bg-subtle sm:order-4"><X className="h-4 w-4" /></button>
+        <audio ref={audio} controls preload="none" aria-label="播客音频播放器" onLoadedMetadata={() => { if (audio.current) audio.current.playbackRate = speed.current }} onPlaying={() => { setError(''); const current = playingEpisode.current; if (current && audio.current?.getAttribute('src') === current.audioUrl) void trackContent('episode', current.id, 'play') }} onError={() => setError('音频加载失败，请检查网络或稍后重试。')} className="order-3 h-11 w-full sm:flex-1" />
         <label className="order-4 flex items-center gap-2 text-xs sm:order-3">倍速<select aria-label="播放速度" defaultValue="1" onChange={e => { speed.current = Number(e.target.value); if (audio.current) audio.current.playbackRate = speed.current }} className="min-h-11 rounded-btn bg-subtle px-2"><option value="0.75">0.75×</option><option value="1">1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
       </div>
       {error && <p role="alert" className="mx-auto mt-2 max-w-6xl text-xs text-red-600">{error}</p>}

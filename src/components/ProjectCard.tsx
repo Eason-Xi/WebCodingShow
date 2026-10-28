@@ -1,3 +1,4 @@
+import { TrackedProjectLink } from './ContentAnalytics'
 import React from 'react'
 import Link from 'next/link'
 import { ProjectGallery } from './ProjectGallery'
@@ -97,7 +98,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         {/* 操作区 */}
         <div className="relative z-10 mt-5 grid grid-cols-2 gap-2 border-t border-line pt-4">
           <Link href={detailUrl} className="inline-flex h-11 min-w-0 items-center justify-center whitespace-nowrap rounded-btn border border-line-strong px-2 text-sm text-ink-2 transition-colors hover:bg-subtle focus-visible:outline-2 focus-visible:outline-offset-2">查看详情</Link>
-          <a
+          <TrackedProjectLink contentId={project.id} event="experienceClick"
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
@@ -105,12 +106,12 @@ export function ProjectCard({ project }: ProjectCardProps) {
           >
             <span>在线体验</span>
             <ExternalLink className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} />
-          </a>
+          </TrackedProjectLink>
 
           {videoUrl && (
-            <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className={`inline-flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn bg-subtle px-2 text-sm text-ink-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 ${!project.sourceUrl ? 'col-span-2' : ''}`}>
+            <TrackedProjectLink contentId={project.id} event="videoClick" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label="观看视频（在新标签页打开）" className={`inline-flex h-11 min-w-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-btn bg-subtle px-2 text-sm text-ink-2 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 ${!project.sourceUrl ? 'col-span-2' : ''}`}>
               <Play className="h-4 w-4 shrink-0" />观看视频
-            </a>
+            </TrackedProjectLink>
           )}
           {project.sourceUrl && (
             <a
