@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { Prisma, type PrismaClient } from '@prisma/client'
 import { prisma } from './prisma'
 import { ANALYTICS_WINDOW_MS, analyticsDay, analyticsDays, type AnalyticsInput, type ContentType } from './analytics-policy'
+import { readBilibiliVideoLink } from './video-works'
 
 const eventFields = {
   view: { counter: 'viewCount', daily: 'views' },
@@ -26,7 +27,13 @@ export async function recordAnalytics(input: AnalyticsInput, db: PrismaClient = 
         // Identifiers come only from the fixed allowlists above. Raw increments deliberately
         // leave editorial updatedAt untouched, so traffic cannot reorder "recently edited".
         const publicOnly = input.contentType === 'episode' ? Prisma.empty : Prisma.sql`AND "status" = 'published'`
-        const hasVideo = input.event === 'videoClick' ? Prisma.sql`AND "videoUrl" IS NOT NULL AND "videoUrl" <> ''` : Prisma.empty
+        let hasVideo = input.event === 'videoClick' ? Prisma.sql`AND "videoUrl" IS NOT NULL AND "videoUrl" <> ''` : Prisma.empty
+        if (input.event === 'videoClick') {
+          const project = await tx.project.findUnique({ where: { id: input.contentId }, select: { url: true } })
+          if (project && readBilibiliVideoLink(project.url)) {
+            hasVideo = Prisma.sql`AND (("videoUrl" IS NOT NULL AND "videoUrl" <> '') OR "url" = ${project.url})`
+          }
+        }
         const changed = await tx.$executeRaw(Prisma.sql`UPDATE ${Prisma.raw(`"${tables[input.contentType]}"`)} SET ${Prisma.raw(`"${counter}"`)} = ${Prisma.raw(`"${counter}"`)} + 1 WHERE "id" = ${input.contentId} ${publicOnly} ${hasVideo}`)
         if (!changed) throw new UnavailableContent()
         await tx.contentMetricDay.upsert({

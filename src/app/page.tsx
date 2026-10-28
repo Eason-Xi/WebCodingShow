@@ -6,12 +6,15 @@ import { ProjectCard } from '@/components/ProjectCard'
 import { BlogCard } from '@/components/BlogCard'
 import { Footer } from '@/components/Footer'
 import { PodcastCard } from '@/components/PodcastCard'
+import { VideoCard } from '@/components/VideoCard'
+import { getVideoWorks } from '@/lib/video-work-data'
 import { Sparkles, ArrowRight, Layers, LayoutGrid, BookOpenText, Headphones } from 'lucide-react'
 
 // 服务端动态渲染确保后台新增后立即更新
 export const revalidate = 0
 
 export default async function HomePage() {
+  const videosPromise = getVideoWorks()
   const [profile, featuredProjects, categories, totalPublishedCount, latestBlogPosts, latestPodcast] = await Promise.all([
     prisma.profile.findUnique({ where: { id: 'default' } }),
     prisma.project.findMany({
@@ -61,6 +64,7 @@ export default async function HomePage() {
     prisma.podcastEpisode.findFirst({ include: { podcast: true }, orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }] }),
   ])
 
+  const videos = await videosPromise
   const safeProfile = profile || {
     name: 'Web 独立创作者',
     title: 'Senior Web Engineer & Creative Coder',
@@ -118,6 +122,13 @@ export default async function HomePage() {
               <p className="text-[13.5px] text-ink-3">暂无精选项目，请在后台将项目设为“精选”。</p>
             </div>
           )}
+        </section>
+
+        <section className="border-t border-line" aria-labelledby="home-videos-heading">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="mb-2.5 text-[11px] font-semibold tracking-[0.15em] text-amber-700 dark:text-amber-400">MOTION & STORIES</p><h2 id="home-videos-heading" className="text-[24px] font-semibold sm:text-[28px]">影像创作</h2><p className="mt-2 text-[13.5px] text-ink-2">用镜头记录灵感，点击封面前往 B 站观看完整视频。</p></div><Link href="/videos" className="inline-flex min-h-11 items-center gap-2 text-sm text-ink-2 hover:text-ink">浏览全部影像<ArrowRight className="h-4 w-4" /></Link></div>
+            {videos.length ? <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{videos.slice(0, 3).map(work => <VideoCard key={work.id} work={work} />)}</div> : <Link href="/videos" className="block rounded-panel border border-dashed border-line-strong p-12 text-center text-sm text-ink-2">让灵感，在画面里发生。探索影像创作 →</Link>}
+          </div>
         </section>
 
         {/* 3. 最新文章 */}

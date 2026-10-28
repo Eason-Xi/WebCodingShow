@@ -91,6 +91,14 @@ test('real database: atomic counters, rolling dedupe, publication rules and dail
       assert.equal((await db.podcastEpisode.findUniqueOrThrow({ where: { id: episode.id } })).playCount, 1)
       assert.equal(await recordAnalytics(events[5], db, later), 'duplicate')
     })
+    await t.test('Bilibili works with only a main URL count video clicks, while draft works stay private', async () => {
+      const video = await db.project.create({ data: { title: 'Film', slug: 'film', url: 'https://www.bilibili.com/video/BV1t7HN6QErA/', summary: 'film', categoryId: category.id } })
+      const click: AnalyticsInput = { ...event, contentId: video.id, event: 'videoClick', visitorId: randomUUID() }
+      assert.equal(await recordAnalytics(click, db, now), 'counted')
+      assert.equal((await db.project.findUniqueOrThrow({ where: { id: video.id } })).videoClickCount, 1)
+      await db.project.update({ where: { id: video.id }, data: { status: 'draft' } })
+      assert.equal(await recordAnalytics({ ...click, visitorId: randomUUID() }, db, now), 'unavailable')
+    })
     await t.test('drafts, missing content and absent video links roll back every write', async () => {
       const receiptsBefore = await db.analyticsReceipt.count()
       for (const id of [draft.id, 'missing']) {

@@ -10,6 +10,7 @@ export function Navbar() {
   const links = [
     { name: '首页', href: '/' },
     { name: '作品', href: '/projects' },
+    { name: '影像', href: '/videos' },
     { name: '博客', href: '/blog' },
     { name: '播客', href: '/podcasts' },
   ]

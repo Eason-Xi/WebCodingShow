@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { readProjectImages } from '@/lib/project-images'
 import { normalizeProjectVideoUrl } from '@/lib/project-video'
+import { readBilibiliVideoLink } from '@/lib/video-works'
 import { ProjectImagesEditor } from './ProjectImagesEditor'
 import {
   ArrowLeft,
@@ -43,9 +44,10 @@ interface ProjectData {
 interface ProjectFormProps {
   initialData?: ProjectData
   isEdit?: boolean
+  videoMode?: boolean
 }
 
-export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
+export function ProjectForm({ initialData, isEdit = false, videoMode = false }: ProjectFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -145,12 +147,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         if (Array.isArray(data)) {
           setCategories(data)
           if (data.length > 0 && !isEdit) {
-            setCategoryId((current) => current || data[0].id)
+            setCategoryId((current) => current || (videoMode ? data.find((item: Category) => item.name === '影像创作')?.id : '') || data[0].id)
           }
         }
       })
+      .catch(() => setError('分类加载失败，请刷新页面后重试'))
       .finally(() => setLoadingCategories(false))
-  }, [isEdit])
+  }, [isEdit, videoMode])
 
   // 上传图片处理：立即本地显示预览，同时后台上传
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,6 +205,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
     }
     if (!summary.trim()) return setError('请输入一句话简介')
     if (!categoryId) return setError('请选择项目所属分类')
+    if (videoMode && !readBilibiliVideoLink(url)) return setError('请输入 B 站视频详情页链接或 b23.tv 分享链接')
 
     let normalizedVideoUrl: string | null
     try { normalizedVideoUrl = normalizeProjectVideoUrl(videoUrl) } catch (error) {
@@ -218,7 +222,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
     const payload = {
       title,
-      url,
+      url: videoMode ? readBilibiliVideoLink(url) : url,
       summary,
       cover,
       images,
@@ -228,7 +232,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       featured,
       sortOrder: Number(sortOrder) || 0,
       sourceUrl,
-      videoUrl: normalizedVideoUrl,
+      videoUrl: videoMode ? readBilibiliVideoLink(url) : normalizedVideoUrl,
       completedAt,
       description,
     }
@@ -250,7 +254,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
 
       setSuccess(true)
       setTimeout(() => {
-        router.push('/admin/projects')
+        router.push(videoMode ? '/admin/videos' : '/admin/projects')
         router.refresh()
       }, 800)
     } catch (err: unknown) {
@@ -266,7 +270,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
       <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <Link
-            href="/admin/projects"
+            href={videoMode ? '/admin/videos' : '/admin/projects'}
             aria-label="返回项目列表"
             className="grid h-11 w-11 shrink-0 place-items-center p-2 rounded-btn border border-line text-ink-3 hover:text-ink hover:bg-subtle transition-colors"
           >
@@ -274,10 +278,10 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           </Link>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-ink">
-              {isEdit ? '编辑项目作品' : '录入新 Web 作品'}
+              {isEdit ? '编辑项目作品' : videoMode ? '录入影像作品' : '录入新 Web 作品'}
             </h1>
             <p className="text-xs text-ink-3 mt-0.5">
-              录入后前台将自动显示卡片并支持一键在新标签页体验
+              {videoMode ? '发布后自动收录到影像创作页，点击封面前往 B 站观看。' : '录入后前台将自动显示卡片并支持一键在新标签页体验'}
             </p>
           </div>
         </div>
@@ -343,13 +347,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           {/* 项目名称 */}
           <div>
             <label className="block text-xs font-medium text-ink-2 mb-1.5">
-              项目名称 <span className="text-red-500">*</span>
+              {videoMode ? '影像标题' : '项目名称'} <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="例如：AI Interview Studio / Shader Flow"
+              placeholder={videoMode ? '为这段影像起一个名字' : '例如：AI Interview Studio / Shader Flow'}
               className="w-full px-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10"
               required
             />
@@ -359,7 +363,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
           <div>
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-1.5">
               <label className="block text-xs font-medium text-ink-2">
-                线上 URL（核心体验地址） <span className="text-red-500">*</span>
+                {videoMode ? 'B 站视频链接' : '线上 URL（核心体验地址）'} <span className="text-red-500">*</span>
               </label>
               <button
                 type="button"
@@ -378,13 +382,13 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
                 value={url}
                 disabled={fetchingMeta}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://demo.example.com 或任意可访问的 Web 链接"
+                placeholder={videoMode ? 'https://www.bilibili.com/video/BV…/ 或 https://b23.tv/…' : 'https://demo.example.com 或任意可访问的 Web 链接'}
                 className="w-full pl-10 pr-3.5 py-2.5 rounded-btn border border-line-strong bg-subtle text-sm focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-ink/10 font-mono text-xs"
                 required
               />
             </div>
             <p className="mt-1 text-[11px] text-ink-3">
-              访客点击卡片“在线体验”时将通过安全新标签页打开该地址。
+              {videoMode ? '支持 B 站完整视频链接和分享短链。可尝试智能提取标题与封面，读取失败时可手动填写或上传封面。' : '访客点击卡片“在线体验”时将通过安全新标签页打开该地址。'}
             </p>
           </div>
 
@@ -609,7 +613,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             </div>
           </div>
 
-          <div>
+          {!videoMode && <div>
             <label htmlFor="project-video-url" className="mb-1.5 block text-xs font-medium text-ink-2">
               视频链接（可选）
             </label>
@@ -626,7 +630,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
             <p id="project-video-help" className="mt-2 text-xs leading-6 text-ink-3">
               填写 Bilibili、YouTube 等视频网站的完整分享链接。访客点击“观看视频”后会在新标签页打开；留空则不显示，清空后保存可移除链接。
             </p>
-          </div>
+          </div>}
 
           {/* 详情说明 */}
           <div>
@@ -647,7 +651,7 @@ export function ProjectForm({ initialData, isEdit = false }: ProjectFormProps) {
         {/* 底部保存提交栏 */}
         <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-line">
           <Link
-            href="/admin/projects"
+            href={videoMode ? '/admin/videos' : '/admin/projects'}
             className="inline-flex items-center justify-center px-6 py-3 rounded-btn border border-line-strong text-sm font-medium text-ink-2 hover:bg-subtle transition-colors text-center"
           >
             ← 取消返回列表
