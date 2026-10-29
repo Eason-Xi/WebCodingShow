@@ -5,12 +5,21 @@ import { isIP } from 'node:net'
 import { isPublicAddress, ProjectImportError, validateProjectUrl } from './project-url'
 
 const MAX_BYTES = 2 * 1024 * 1024
+type PublicFetchOptions = { signal: AbortSignal; headers?: Record<string, string> }
+
+export function fetchPublicText(input: string, options: PublicFetchOptions) {
+  return fetchPublicResource(input, options)
+}
+
+// Resolve media redirects without downloading or buffering the audio body.
+export function fetchPublicHeaders(input: string, options: PublicFetchOptions) {
+  return fetchPublicResource(input, { ...options, method: 'HEAD' })
+}
 
 // Resolve, validate and pin the address used by the socket, including every redirect.
 // This avoids a second DNS lookup between validation and connection.
-export async function fetchPublicText(input: string, options: {
-  signal: AbortSignal
-  headers?: Record<string, string>
+async function fetchPublicResource(input: string, options: PublicFetchOptions & {
+  method?: 'GET' | 'HEAD'
 }, redirects = 0): Promise<{ url: string; status: number; headers: Headers; text: string }> {
   options.signal.throwIfAborted()
   const url = validateProjectUrl(input)
@@ -43,7 +52,7 @@ export async function fetchPublicText(input: string, options: {
   const address = addresses.find((item) => item.family === 4) || addresses[0]
   const result = await new Promise<{ status: number; headers: Headers; text: string }>((resolve, reject) => {
     const request = (url.protocol === 'https:' ? httpsRequest : httpRequest)(url, {
-      method: 'GET',
+      method: options.method || 'GET',
       signal: options.signal,
       agent: false,
       headers: { 'User-Agent': 'WebCodingShow', Accept: 'text/html', 'Accept-Encoding': 'identity', ...options.headers },
@@ -59,6 +68,11 @@ export async function fetchPublicText(input: string, options: {
       }
       const status = response.statusCode || 502
       if (status >= 300 && status < 400 && headers.has('location')) {
+        response.destroy()
+        resolve({ status, headers, text: '' })
+        return
+      }
+      if (options.method === 'HEAD') {
         response.destroy()
         resolve({ status, headers, text: '' })
         return
@@ -91,7 +105,7 @@ export async function fetchPublicText(input: string, options: {
         if (/^(authorization|cookie)$/i.test(key)) delete headers[key]
       }
     }
-    return fetchPublicText(next.toString(), { ...options, headers }, redirects + 1)
+    return fetchPublicResource(next.toString(), { ...options, headers }, redirects + 1)
   }
   return { ...result, url: url.toString() }
 }

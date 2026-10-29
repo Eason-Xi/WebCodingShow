@@ -3,15 +3,25 @@ import { fetchPublicText } from './public-web-fetch'
 import { validateProjectUrl } from './project-url'
 import { parsePodcastRss } from './podcast-rss'
 
-export async function importPodcast(rssUrl: string) {
-  const normalized = validateProjectUrl(rssUrl)
+export async function importPodcast(input: string, db = prisma, readFeed = fetchPublicText) {
+  const normalized = validateProjectUrl(input)
   normalized.hash = ''
-  const response = await fetchPublicText(normalized.href, { signal: AbortSignal.timeout(25000), headers: { Accept: 'application/rss+xml, application/xml, text/xml' } })
+  const response = await readFeed(normalized.href, { signal: AbortSignal.timeout(25000), headers: { Accept: 'application/rss+xml, application/xml, text/xml' } })
   if (response.status !== 200) throw new Error(`RSS 获取失败（HTTP ${response.status}）`)
-  const { episodes, ...show } = parsePodcastRss(response.text, response.url)
-  const existing = await prisma.podcast.findFirst({ where: { rssUrl: { in: [normalized.href, response.url] } } })
-  return prisma.$transaction(async tx => {
-    const podcast = await tx.podcast.upsert({ where: { rssUrl: existing?.rssUrl || response.url }, create: { rssUrl: response.url, ...show }, update: { ...show, syncedAt: new Date() } })
+  const { episodes, feedUrl, ...show } = parsePodcastRss(response.text, response.url)
+  // The response URL can be a short-lived, signed CDN URL. Keep the feed's
+  // canonical self link (or the submitted URL) for future manual syncs.
+  const rssUrl = feedUrl || normalized.href
+  let existing = await db.podcast.findFirst({ where: { rssUrl: { in: [rssUrl, normalized.href, response.url] } } })
+  if (!existing && new URL(rssUrl).hostname === 'muse.ai') {
+    // Recover imports made before we stopped persisting Muse's signed RSS URL.
+    existing = await db.podcast.findFirst({ where: {
+      rssUrl: { startsWith: 'https://cdn.fbsbx.com/' },
+      episodes: { some: { OR: episodes.map(({ guid, audioUrl }) => ({ guid, audioUrl })) } },
+    } })
+  }
+  return db.$transaction(async tx => {
+    const podcast = await tx.podcast.upsert({ where: { rssUrl: existing?.rssUrl || rssUrl }, create: { rssUrl, ...show }, update: { rssUrl, ...show, syncedAt: new Date() } })
     let added = 0
     for (const episode of episodes) {
       const where = { podcastId_guid: { podcastId: podcast.id, guid: episode.guid } }

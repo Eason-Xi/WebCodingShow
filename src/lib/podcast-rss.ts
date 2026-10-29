@@ -22,6 +22,8 @@ export function parsePodcastRss(xml: string, base: string) {
   const channel = node(node(parsed.rss).channel)
   const title = plain(channel.title)
   if (!title) throw new Error('未找到 RSS 2.0 节目信息，请提供音频播客 RSS 地址')
+  const self = list(channel['atom:link']).map(node).find(link => text(link['@_rel']) === 'self')
+  const feedUrl = url(self?.['@_href'], base)
   const cover = url(node(channel['itunes:image'])['@_href'], base) || url(node(channel.image).url, base)
   const seen = new Set<string>()
   const episodes = list(channel.item).flatMap(value => {
@@ -36,5 +38,5 @@ export function parsePodcastRss(xml: string, base: string) {
     return [{ guid, title: plain(item.title) || '未命名单集', description: plain(item['content:encoded'] || item.description || item['itunes:summary']), audioUrl, cover: url(node(item['itunes:image'])['@_href'], base) || cover, duration: parseDuration(item['itunes:duration']), publishedAt: Number.isNaN(date.getTime()) ? null : date, website: url(item.link, base) }]
   })
   if (!episodes.length) throw new Error('RSS 中没有可播放的音频单集（需要 audio enclosure）')
-  return { title, description: plain(channel.description), author: plain(channel['itunes:author']) || null, cover, website: url(channel.link, base), episodes }
+  return { title, description: plain(channel.description), author: plain(channel['itunes:author']) || null, cover, website: url(channel.link, base), feedUrl, episodes }
 }

@@ -5,7 +5,7 @@ import https from 'node:https'
 import { PassThrough } from 'node:stream'
 import { EventEmitter } from 'node:events'
 import type { IncomingMessage, RequestOptions } from 'node:http'
-import { fetchPublicText } from '../src/lib/public-web-fetch'
+import { fetchPublicHeaders, fetchPublicText } from '../src/lib/public-web-fetch'
 
 type Reply = { status?: number; headers?: Record<string, string>; body?: string }
 type Call = { url: URL; options: RequestOptions }
@@ -82,4 +82,19 @@ test('private DNS answers stay blocked, including answers returned by the fake D
   const fallback = mockNetwork(context, () => ({ body: JSON.stringify({ Status: 0, Answer: [{ type: 1, data: '127.0.0.1' }] }) }), '198.18.0.1')
   await assert.rejects(fetchPublicText('https://example.com', { signal: AbortSignal.timeout(1000) }), /内网/)
   assert.equal(fallback.length, 1)
+})
+
+test('media HEAD resolves redirects without buffering large audio, while keeping network checks', async (context) => {
+  const calls = mockNetwork(context, (url): Reply => url.hostname === 'muse.ai'
+    ? { status: 302, headers: { location: 'https://cdn.example.com/audio.mp3', 'cross-origin-resource-policy': 'same-origin' } }
+    : { headers: { 'content-type': 'audio/mpeg', 'content-length': '3102949' } })
+  const response = await fetchPublicHeaders('https://muse.ai/audio.mp3', { signal: AbortSignal.timeout(1000) })
+  assert.equal(response.url, 'https://cdn.example.com/audio.mp3')
+  assert.equal(response.headers.get('content-type'), 'audio/mpeg')
+  assert.equal(response.text, '')
+  assert.deepEqual(calls.map(call => call.options.method), ['HEAD', 'HEAD'])
+  context.mock.restoreAll()
+  const blocked = mockNetwork(context, () => ({ status: 302, headers: { location: 'http://127.0.0.1/audio.mp3' } }))
+  await assert.rejects(fetchPublicHeaders('https://muse.ai/audio.mp3', { signal: AbortSignal.timeout(1000) }), /本机|内网/)
+  assert.equal(blocked.length, 1)
 })
