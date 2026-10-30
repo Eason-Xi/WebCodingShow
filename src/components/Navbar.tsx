@@ -13,6 +13,7 @@ export function Navbar() {
     { name: '影像', href: '/videos' },
     { name: '博客', href: '/blog' },
     { name: '播客', href: '/podcasts' },
+    { name: '动态', href: '/moments' },
   ]
 
   return (
@@ -34,7 +35,7 @@ export function Navbar() {
         </Link>
 
         {/* 导航 */}
-        <nav aria-label="主导航" className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <nav aria-label="主导航" className="flex min-w-0 items-center gap-0.5 overflow-x-auto sm:gap-1">
           {links.map((link) => {
             const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(`${link.href}/`))
             return (

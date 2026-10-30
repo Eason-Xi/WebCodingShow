@@ -151,3 +151,18 @@ model AnalyticsReceipt {
 
   @@index([expiresAt])
 }
+
+model Moment {
+  id          String   @id @default(cuid())
+  content     String
+  media       String   @default("[]")
+  status      String   @default("draft")
+  pinned      Boolean  @default(false)
+  xUrl        String?
+  xhsUrl      String?
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, pinned, publishedAt(sort: Desc)])
+}

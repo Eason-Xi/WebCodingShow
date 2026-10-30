@@ -19,6 +19,7 @@ import {
   SquarePen,
   Music2,
   Film,
+  MessageSquareText,
 } from 'lucide-react'
 
 export function AdminSidebar() {
@@ -33,6 +34,7 @@ export function AdminSidebar() {
     { name: '新增作品', href: '/admin/projects/new', icon: PlusCircle },
     { name: '影像创作', href: '/admin/videos', icon: Film },
     { name: '文章管理', href: '/admin/posts', icon: FileText },
+    { name: '动态管理', href: '/admin/moments', icon: MessageSquareText },
     { name: '写文章', href: '/admin/posts/new', icon: SquarePen },
     { name: '链接导入', href: '/admin/import', icon: Link2 },
     { name: '分类管理', href: '/admin/categories', icon: Tag },

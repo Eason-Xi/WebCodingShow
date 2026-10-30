@@ -6,6 +6,7 @@ import { put } from '@vercel/blob'
 import { randomUUID } from 'node:crypto'
 import { readProjectImages } from '../src/lib/project-images'
 import { settingsFromRecord } from '../src/lib/music'
+import { normalizeMomentMedia, MOMENT_MIME_EXTENSIONS } from '../src/lib/moments'
 
 loadEnvConfig(process.cwd())
 const prisma = new PrismaClient()
@@ -13,18 +14,20 @@ const file = process.argv[3] || 'backups/portfolio.json'
 const mode = process.argv[2]
 
 async function snapshot() {
-  const [profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics] = await Promise.all([
+  const [profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics, moments] = await Promise.all([
     prisma.profile.findMany(), prisma.category.findMany(), prisma.tag.findMany(),
     prisma.project.findMany({ include: { tags: { select: { id: true } } } }),
     prisma.blogPost.findMany(),
     prisma.musicSettings.findMany(), prisma.podcast.findMany(), prisma.podcastEpisode.findMany(),
     prisma.contentMetricDay.findMany(),
+    prisma.moment.findMany(),
   ])
-  return { version: 5 as const, profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics }
+  return { version: 6 as const, profiles, categories, tags, projects, posts, musicSettings, podcasts, podcastEpisodes, contentMetrics, moments }
 }
 
 type CurrentSnapshot = Awaited<ReturnType<typeof snapshot>>
-type LegacySnapshotV4 = Omit<CurrentSnapshot, 'version' | 'contentMetrics'> & { version: 4 }
+type LegacySnapshotV5 = Omit<CurrentSnapshot, 'version' | 'moments'> & { version: 5 }
+type LegacySnapshotV4 = Omit<LegacySnapshotV5, 'version' | 'contentMetrics'> & { version: 4 }
 type LegacySnapshotV3 = Omit<LegacySnapshotV4, 'version' | 'podcasts' | 'podcastEpisodes'> & { version: 3 }
 type LegacySnapshotV2 = Omit<LegacySnapshotV3, 'version' | 'musicSettings'> & {
   version: 2
@@ -34,7 +37,7 @@ type LegacySnapshotV1 = Omit<LegacySnapshotV2, 'version' | 'posts'> & {
   version: 1
   posts?: never
 }
-type Snapshot = CurrentSnapshot | LegacySnapshotV4 | LegacySnapshotV3 | LegacySnapshotV2 | LegacySnapshotV1
+type Snapshot = CurrentSnapshot | LegacySnapshotV5 | LegacySnapshotV4 | LegacySnapshotV3 | LegacySnapshotV2 | LegacySnapshotV1
 
 async function main() {
   if (mode === 'export') {
@@ -50,19 +53,21 @@ async function main() {
     throw new Error('Import is only supported into PostgreSQL')
   }
   const data = JSON.parse(await readFile(file, 'utf8')) as Snapshot
-  if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4 && data.version !== 5) throw new Error('Unsupported snapshot version')
+  if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4 && data.version !== 5 && data.version !== 6) throw new Error('Unsupported snapshot version')
   if (data.version !== 1 && !Array.isArray(data.posts)) throw new Error('Snapshot posts are invalid')
-  if ((data.version === 3 || data.version === 4 || data.version === 5) && !Array.isArray(data.musicSettings)) throw new Error('Snapshot music settings are invalid')
+  if ((data.version === 3 || data.version === 4 || data.version === 5 || data.version === 6) && !Array.isArray(data.musicSettings)) throw new Error('Snapshot music settings are invalid')
   const posts: CurrentSnapshot['posts'] = data.version === 1 ? [] : data.posts
-  const musicSettings: CurrentSnapshot['musicSettings'] = (data.version === 3 || data.version === 4 || data.version === 5) ? data.musicSettings : []
-  if ((data.version === 4 || data.version === 5) && (!Array.isArray(data.podcasts) || !Array.isArray(data.podcastEpisodes))) throw new Error('Snapshot podcasts are invalid')
-  const podcasts = (data.version === 4 || data.version === 5) ? data.podcasts : []
-  const podcastEpisodes = (data.version === 4 || data.version === 5) ? data.podcastEpisodes : []
-  if (data.version === 5 && !Array.isArray(data.contentMetrics)) throw new Error('Snapshot content metrics are invalid')
-  const contentMetrics = data.version === 5 ? data.contentMetrics : []
+  const musicSettings: CurrentSnapshot['musicSettings'] = (data.version === 3 || data.version === 4 || data.version === 5 || data.version === 6) ? data.musicSettings : []
+  if ((data.version === 4 || data.version === 5 || data.version === 6) && (!Array.isArray(data.podcasts) || !Array.isArray(data.podcastEpisodes))) throw new Error('Snapshot podcasts are invalid')
+  const podcasts = (data.version === 4 || data.version === 5 || data.version === 6) ? data.podcasts : []
+  const podcastEpisodes = (data.version === 4 || data.version === 5 || data.version === 6) ? data.podcastEpisodes : []
+  if ((data.version === 5 || data.version === 6) && !Array.isArray(data.contentMetrics)) throw new Error('Snapshot content metrics are invalid')
+  const contentMetrics = data.version === 5 || data.version === 6 ? data.contentMetrics : []
+  if (data.version === 6 && !Array.isArray(data.moments)) throw new Error('Snapshot moments are invalid')
+  const moments = data.version === 6 ? data.moments : []
   // A first-time migration only: never replace existing production content.
   const existing = await snapshot()
-  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length || existing.posts.length || existing.musicSettings.length || existing.podcasts.length || existing.podcastEpisodes.length || existing.contentMetrics.length) {
+  if (existing.projects.length || existing.categories.length || existing.tags.length || existing.profiles.length || existing.posts.length || existing.musicSettings.length || existing.podcasts.length || existing.podcastEpisodes.length || existing.contentMetrics.length || existing.moments.length) {
     throw new Error('Target database must be empty; existing content was not changed')
   }
   const images = new Map<string, string>()
@@ -101,6 +106,25 @@ async function main() {
     return blob.url
   }
   try {
+    const momentUploads = new Map<string, string>()
+    for (const moment of moments) {
+      const media = normalizeMomentMedia(JSON.parse(moment.media))
+      for (const attachment of media) {
+        if (!attachment.url.startsWith('/api/moments/media/')) continue
+        const source = attachment.url
+        if (!momentUploads.has(source)) {
+          if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error('Blob token required for existing moment media')
+          const content = await readFile(path.join('public/uploads/moments', path.basename(source)))
+          const blob = await put(`moments/${randomUUID()}${MOMENT_MIME_EXTENSIONS[attachment.type]}`, content, {
+            access: 'public', contentType: attachment.type, addRandomSuffix: false, token: process.env.BLOB_READ_WRITE_TOKEN,
+          })
+          momentUploads.set(source, blob.url)
+          uploads.push({ source, url: blob.url })
+        }
+        attachment.url = momentUploads.get(source)!
+      }
+      moment.media = JSON.stringify(media)
+    }
     for (const profile of data.profiles) profile.avatar = await imageUrl(profile.avatar)
     for (const project of data.projects) {
       project.cover = await imageUrl(project.cover)
@@ -127,6 +151,7 @@ async function main() {
       for (const podcast of podcasts) await tx.podcast.create({ data: podcast })
       for (const episode of podcastEpisodes) await tx.podcastEpisode.create({ data: episode })
       for (const metric of contentMetrics) await tx.contentMetricDay.create({ data: metric })
+      for (const moment of moments) await tx.moment.create({ data: moment })
     }, { timeout: 60000 })
     console.log(`Imported ${data.projects.length} projects, ${posts.length} posts and ${musicSettings.length} music settings; migrated ${images.size} local images and ${audio.size} local audio files`)
   } finally {

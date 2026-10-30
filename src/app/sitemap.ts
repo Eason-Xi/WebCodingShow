@@ -7,7 +7,7 @@ export const revalidate = 0
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://webcoding-show.vercel.app').replace(/\/$/, '')
-  const [projects, posts, podcastEpisodes] = await Promise.all([
+  const [projects, posts, podcastEpisodes, moments] = await Promise.all([
     prisma.project.findMany({
       where: { status: 'published' },
       select: { id: true, updatedAt: true },
@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { slug: true, updatedAt: true },
     }),
     prisma.podcastEpisode.findMany({ select: { id: true, publishedAt: true, createdAt: true } }),
+    prisma.moment.findMany({ where: { status: 'published' }, select: { id: true, updatedAt: true } }),
   ])
 
   return [
@@ -25,6 +26,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/videos`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/blog`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${baseUrl}/podcasts`, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${baseUrl}/moments`, changeFrequency: 'daily', priority: 0.8 },
+    ...moments.map(moment => ({ url: `${baseUrl}/moments/${moment.id}`, lastModified: moment.updatedAt, changeFrequency: 'monthly' as const, priority: 0.6 })),
     ...podcastEpisodes.map((episode) => ({
       url: `${baseUrl}${podcastPath(episode.id)}`,
       lastModified: episode.publishedAt || episode.createdAt,
